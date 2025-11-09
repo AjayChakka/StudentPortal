@@ -1,0 +1,5616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sri Vasavi Engineering College - Portal (Modernized)</title>
+  <meta name="description" content="Student / Faculty portal demo for Sri Vasavi Engineering College - accessible, mobile-friendly, localStorage-backed" />
+  <style>
+    :root{
+      --blue1:#2a73d9;
+      --blue2:#1a5ab8;
+      --muted:#e8f1fc;
+      --card-bg:#ffffff;
+      --glass: rgba(255,255,255,0.7);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Arial,Helvetica,sans-serif;
+      background:linear-gradient(180deg,#ffffff 0%, #f9f9f9 100%);
+      color:#122;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding-bottom:28px;
+    }
+    a{text-decoration:none;color:inherit}
+    .header{
+      background:linear-gradient(90deg,var(--blue1),var(--blue2));
+      color:#fff;
+      text-align:center;
+      padding:14px 12px;
+      box-shadow:0 6px 20px rgba(42,115,217,0.08);
+      position:sticky;top:0;z-index:40;
+    }
+    .header h1{margin:0;font-size:20px;letter-spacing:0.2px}
+    .header h2,.header p{margin:4px 0;font-size:13px;color:rgba(255,255,255,0.95)}
+    .welcome{ text-align:center;font-size:18px;font-weight:700;margin:14px 0;color:#2a4d8f }
+    .notice{ text-align:center;font-size:13px;color:#d00;font-weight:700;margin-bottom:10px }
+    .selection-container{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:18px}
+    .role-btn{padding:10px 14px;border-radius:999px;border:none;cursor:pointer;background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#fff;font-weight:700;box-shadow:0 6px 18px rgba(42,115,217,0.12);transition:transform .14s,box-shadow .14s}
+    .role-btn:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(42,115,217,0.16)}
+    .login-container{display:flex;justify-content:center;align-items:flex-start;margin:10px;padding:10px}
+    .login-box{width:380px;background:var(--glass);backdrop-filter:blur(6px);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(15,30,60,0.06);border:1px solid rgba(200,220,255,0.6)}
+    .login-box h3{text-align:center;color:#002b63;margin:3px 0 12px}
+    label{display:block;font-size:13px;margin:6px 0;color:#333}
+    input[type=text],input[type=password],textarea,select{width:100%;padding:10px;border:1px solid #cfe0ff;border-radius:10px;font-size:14px;background:#fff}
+    textarea{min-height:120px}
+    .login-actions{display:flex;gap:8px;margin-top:12px}
+    .login-btn{flex:1;padding:10px;border-radius:999px;border:none;background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:white;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(0,120,255,0.12)}
+    .secondary-btn{background:#fff;border:1px solid #cbdff7;color:#003366;padding:10px;border-radius:999px;cursor:pointer}
+    .error-msg{color:#b00020;font-weight:700;margin-top:8px}
+    .top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--blue1);color:#fff;position:relative;z-index:20;border-radius:8px}
+    .container{display:flex;height:calc(100vh - 220px);transition:all .25s;padding:12px}
+    .sidebar{width:300px;background:linear-gradient(180deg,#ffffff,#f4f9ff);padding:14px;overflow:auto;border-right:1px solid #e8f3ff;border-radius:12px;box-shadow:0 8px 30px rgba(30,60,120,0.03);transition:all .35s ease}
+    .sidebar h2{font-size:18px;margin:6px 0 12px;color:#003366}
+    .menu-item{display:block;padding:10px;border-radius:10px;background:var(--card-bg);border:1px solid #e6f0ff;color:#003366;margin:8px 0;cursor:pointer;box-shadow:0 2px 6px rgba(20,40,80,0.03);transition:transform .12s,box-shadow .12s}
+    .menu-item:hover{transform:translateY(-4px);box-shadow:0 10px 22px rgba(30,80,170,0.06)}
+    .menu-item.small{font-size:13px;padding:8px}
+    .content{flex:1;padding:18px;background:#fff;border-radius:12px;margin-left:12px;overflow:auto;box-shadow:0 10px 40px rgba(14,30,80,0.04)}
+    .footer{text-align:center;font-size:13px;background:#eaf2ff;padding:12px;margin-top:12px;border-top:1px solid #e1ecff;border-radius:8px}
+    .student-role .top-bar{background:linear-gradient(90deg,#3a9bd9,#2a73d9)}
+    .teacher-role .top-bar{background:linear-gradient(90deg,#3bbf7a,#1aa85c)}
+    .principal-role .top-bar{background:linear-gradient(90deg,#f4c66a,#f09020)}
+    .hamburger{display:none;align-items:center;justify-content:center;gap:6px;cursor:pointer;width:46px;height:40px;border-radius:8px;background:rgba(255,255,255,0.12);transition:background .2s,transform .15s;box-shadow:0 2px 6px rgba(0,0,0,0.12)}
+    .hamburger:hover{background:rgba(255,255,255,0.22);transform:scale(1.03)}
+    .hamburger div{width:28px;height:3.5px;background:#fff;border-radius:4px;transition:all .25s ease;display:block}
+    .hamburger.open div:nth-child(1){transform:translateY(6px) rotate(45deg)}
+    .hamburger.open div:nth-child(2){opacity:0}
+    .hamburger.open div:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+    #overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:90}
+    #overlay.show{opacity:1;pointer-events:auto}
+    @media (max-width:920px){
+      .container{flex-direction:column;height:auto;padding:8px}
+      .sidebar{position:fixed;left:-360px;top:72px;height:calc(100vh - 72px);width:320px;border-right:none;box-shadow:8px 0 38px rgba(20,40,80,0.12);z-index:200;background:linear-gradient(180deg,#ffffff,#f4f9ff);}
+      .sidebar.show{left:8px;transition:left .3s ease}
+      .hamburger{display:flex}
+      .login-box{width:100%}
+      .content{margin-top:14px;margin-left:0}
+      .top-bar{border-radius:0}
+    }
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #eee;padding:8px;text-align:left}
+    .submit-btn{margin-top:8px;padding:8px 12px;border-radius:8px;background:#2a73d9;color:#fff;border:none;cursor:pointer}
+    .card{border:1px solid #eef6ff;padding:12px;border-radius:12px;margin-bottom:12px;background:#fff;box-shadow:0 6px 18px rgba(30,70,140,0.03)}
+    .card .muted{color:#6b7280}
+    .badge{background:#2a73d9;color:#fff;padding:4px 10px;border-radius:999px;font-size:12px;margin-left:8px}
+    hr{border:0;border-top:1px dashed #e9f2ff;margin:10px 0}
+    .muted{color:#666;font-size:13px}
+    .btn-small{padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+    .avatar{
+      width:64px;height:64px;border-radius:999px;overflow:hidden;display:inline-block;background:#eef;border:3px solid #fff;box-shadow:0 6px 18px rgba(20,40,80,0.06)
+    }
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+    .avatar-sm{width:44px;height:44px;border-radius:999px;overflow:hidden;background:#eef;display:inline-block}
+    .profile-row{display:flex;gap:12px;align-items:center}
+    .search-input{width:100%;padding:10px;border-radius:10px;border:1px solid #e2efff;}
+    /* Export modal */
+    #exportModal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;box-shadow:0 18px 60px rgba(2,18,80,0.18);padding:16px;z-index:300;max-width:92%;width:820px;display:none}
+    #exportModal.show{display:block}
+    #exportModal textarea{height:360px;white-space:pre-wrap;overflow:auto;width:100%;border-radius:8px;border:1px solid #eef6ff;padding:8px}
+    #exportOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;z-index:250}
+    #exportOverlay.show{display:block}
+    .muted-small{color:#8b95a6;font-size:12px}
+    .help-quiet{font-size:12px;color:#748194}
+    .hover-fade:hover{opacity:0.9}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>ESTD: 2001 &nbsp; COUNSELLING CODE: VSVT</h2>
+    <h1>SRI VASAVI ENGINEERING COLLEGE <span style="color:#ff5555">(AUTONOMOUS)</span></h1>
+    <p>Pedatadepalli, Tadepalligudem - 534 101, W.G.Dist, (A.P.)</p>
+  </div>
+
+  <div class="welcome">✨ Welcome To Vasavi ✨ </div>
+  <div class="notice">Students & Teachers can now update profiles, upload photos, and search the directory</div>
+
+  <div id="roleSelection" class="selection-container" aria-hidden="false">
+    <button class="role-btn" data-role="CSE-A">CSE - A</button>
+    <button class="role-btn" data-role="CSE-B">CSE - B</button>
+    <button class="role-btn" data-role="CSE-C">CSE - C</button>
+    <button class="role-btn" data-role="CSE-D">CSE - D</button>
+    <button class="role-btn" data-role="CSE-E">CSE - E</button>
+    <button class="role-btn" data-role="CST">CST</button>
+    <button class="role-btn" data-role="faculty">Faculty</button>
+    <button class="role-btn" data-role="principal">Principal</button>
+  </div>
+
+  <div id="loginPage" class="login-container" aria-live="polite" style="display:none"></div>
+
+  <div id="dashboard" style="display:none;">
+    <div class="top-bar" id="topBar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="hamburger" id="hamburgerBtn" aria-label="Open menu" role="button" tabindex="0">
+          <div></div><div></div><div></div>
+        </div>
+        <span id="welcomeUser" style="font-weight:700">Hi... User</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <a href="#" id="changePassLink" style="color:#fff;margin-right:10px">Change Password</a> |
+        <a href="#" id="editProfileLink" style="color:#fff;margin-left:10px">Edit Profile</a> |
+        <a href="#" id="logoutLink" style="color:#fff;margin-left:10px">Logout</a>
+      </div>
+    </div>
+
+    <div id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="container">
+      <nav class="sidebar" id="menuList" role="navigation" aria-label="Main menu"></nav>
+      <main class="content" id="mainContent" tabindex="0">
+        <h2 id="profileTitle">Profile</h2>
+        <div id="actionContainer"><p>Information will appear here...</p></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div id="exportOverlay"></div>
+  <div id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle" aria-hidden="true">
+    <h3 id="exportTitle">Export Portal Data (copy & paste)</h3>
+    <textarea id="exportText" readonly></textarea>
+    <div class="modal-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+      <button class="secondary-btn" id="closeExportBtn">Close</button>
+      <button class="login-btn" id="copyExportBtn">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <script>
+    /** -------------------- DATA & STORAGE -------------------- **/
+    const STORAGE_KEY = 'vasavi_portal_db_v6_modern';
+
+    // Default demo data
+        const DEFAULT_DATA = {
+      students: {
+  "CSE-A": [
+    {
+      "username": "24A81A0501",
+      "password": "24A81A0501",
+      "name": "ANGARAKULA ANAND SRI MANI VENKAT KUMAR",
+      "roll": "24A81A0501",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "1234567890",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0502",
+      "password": "24A81A0502",
+      "name": "ABDUL HAMEED",
+      "roll": "24A81A0502",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9121324537",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0503",
+      "password": "24A81A0503",
+      "name": "BANDI DEVA SRI CHARAN",
+      "roll": "24A81A0503",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9959549144",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0504",
+      "password": "24A81A0504",
+      "name": "BORUSU SATYA ANVESH",
+      "roll": "24A81A0504",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9182028465",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0505",
+      "password": "24A81A0505",
+      "name": "CHALUVADI N S D L SAI PRASANNA",
+      "roll": "24A81A0505",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9182077322",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0506",
+      "password": "24A81A0506",
+      "name": "CHAVALA SRI SATYA TEJASWINI",
+      "roll": "24A81A0506",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9160481669",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0507",
+      "password": "24A81A0507",
+      "name": "CHIKKALA USHA KIRAN",
+      "roll": "24A81A0507",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9032954327",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0508",
+      "password": "24A81A0508",
+      "name": "CHILAKA RAMA SAI MANIKANTA",
+      "roll": "24A81A0508",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9177535580",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0509",
+      "password": "24A81A0509",
+      "name": "DHUSANAPUDI LAKSHMI SRI SAHITHYA",
+      "roll": "24A81A0509",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7702560029",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0510",
+      "password": "24A81A0510",
+      "name": "DASAKA SRI LAKSHMI SRAVYA",
+      "roll": "24A81A0510",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8179280468",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0511",
+      "password": "24A81A0511",
+      "name": "DEYYAPU BANNI BABU",
+      "roll": "24A81A0511",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8688842271",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0512",
+      "password": "24A81A0512",
+      "name": "DWARAMPUDI KAVYA SRI",
+      "roll": "24A81A0512",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9290128278",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0513",
+      "password": "24A81A0513",
+      "name": "EDE NANDINI",
+      "roll": "24A81A0513",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8639485938",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0514",
+      "password": "24A81A0514",
+      "name": "GADDE BHAVANI MEGHANA CHOWDARY",
+      "roll": "24A81A0514",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9908048283",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0515",
+      "password": "24A81A0515",
+      "name": "GANCHEERI VAISHNAVI",
+      "roll": "24A81A0515",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9392372447",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0516",
+      "password": "24A81A0516",
+      "name": "GARNIPUDI UDAY SAI",
+      "roll": "24A81A0516",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9949244844",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0517",
+      "password": "24A81A0517",
+      "name": "GEESALA BRUHADEESWARI",
+      "roll": "24A81A0517",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7569532669",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0518",
+      "password": "24A81A0518",
+      "name": "GOWTHU KESAVA NAIDU",
+      "roll": "24A81A0518",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9390991085",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0519",
+      "password": "24A81A0519",
+      "name": "GUGULOTHU BHARATH RAJU",
+      "roll": "24A81A0519",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9398473160",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0520",
+      "password": "24A81A0520",
+      "name": "GULIPALLI KRUPAJYOTHI",
+      "roll": "24A81A0520",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9912549506",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0521",
+      "password": "24A81A0521",
+      "name": "INDIPIKAYALA GRAGANYA LEELA HARINI SRI",
+      "roll": "24A81A0521",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9492646999",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0522",
+      "password": "24A81A0522",
+      "name": "INUMULA SUBHASHINI DEVI",
+      "roll": "24A81A0522",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8008424257",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0523",
+      "password": "24A81A0523",
+      "name": "JAVVADI JHANSI NAIDU",
+      "roll": "24A81A0523",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9490848498",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0524",
+      "password": "24A81A0524",
+      "name": "JUVVALA PURNIMA",
+      "roll": "24A81A0524",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9515825009",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0525",
+      "password": "24A81A0525",
+      "name": "KOTHAPALLI SAI PRAVEENA",
+      "roll": "24A81A0525",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7416753667",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0526",
+      "password": "24A81A0526",
+      "name": "KATTA SRAVANI",
+      "roll": "24A81A0526",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8919636493",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0527",
+      "password": "24A81A0527",
+      "name": "KAVURU RATHNA DEEPIKA",
+      "roll": "24A81A0527",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9652703676",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0528",
+      "password": "24A81A0528",
+      "name": "KODATI GANESH KUMAR",
+      "roll": "24A81A0528",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7997299977",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0529",
+      "password": "24A81A0529",
+      "name": "KOMMANA SNEHA LATHA DURGA BHAVANI",
+      "roll": "24A81A0529",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7569748486",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0530",
+      "password": "24A81A0530",
+      "name": "KONDAVEETI YASWANTH KARTHIK",
+      "roll": "24A81A0530",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8121326318",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0531",
+      "password": "24A81A0531",
+      "name": "KORLA AMRUTA",
+      "roll": "24A81A0531",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9553477149",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0532",
+      "password": "24A81A0532",
+      "name": "KUDUPUDI NAGA BABU",
+      "roll": "24A81A0532",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9676427578",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0533",
+      "password": "24A81A0533",
+      "name": "KUNA NAGALAKSHMI",
+      "roll": "24A81A0533",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7396559078",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0534",
+      "password": "24A81A0534",
+      "name": "KURMALA JAYA SAI SWAROOP",
+      "roll": "24A81A0534",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9618628568",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0535",
+      "password": "24A81A0535",
+      "name": "MADDURI KALI SAI RAMA MUKHESH SARMA",
+      "roll": "24A81A0535",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9494135315",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0536",
+      "password": "24A81A0536",
+      "name": "MADDALA NIKHILESH",
+      "roll": "24A81A0536",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9381000959",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0537",
+      "password": "24A81A0537",
+      "name": "MADDIPATI LEELA MOHAN",
+      "roll": "24A81A0537",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8790045861",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0538",
+      "password": "24A81A0538",
+      "name": "MARISETTI NAVEENA LASYA",
+      "roll": "24A81A0538",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7386474414",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0539",
+      "password": "24A81A0539",
+      "name": "MIDATHA BALA SUBRAHMANYAM",
+      "roll": "24A81A0539",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9704996323",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0540",
+      "password": "24A81A0540",
+      "name": "MOHAMMAD SAAHIL",
+      "roll": "24A81A0540",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8688145739",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0541",
+      "password": "24A81A0541",
+      "name": "MOTEPALLI PAVAN SAI",
+      "roll": "24A81A0541",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7013248663",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0542",
+      "password": "24A81A0542",
+      "name": "NADIKATLA PAVAN KUMAR",
+      "roll": "24A81A0542",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9640247055",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0543",
+      "password": "24A81A0543",
+      "name": "NAMBULA GANESH",
+      "roll": "24A81A0543",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9346232501",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0544",
+      "password": "24A81A0544",
+      "name": "NANNA NAGA CHANDU",
+      "roll": "24A81A0544",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "6303326003",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0545",
+      "password": "24A81A0545",
+      "name": "NARAYANAM RAM CHARAN",
+      "roll": "24A81A0545",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8499964559",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0546",
+      "password": "24A81A0546",
+      "name": "NEELAM HEMALATHA",
+      "roll": "24A81A0546",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7672035143",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0547",
+      "password": "24A81A0547",
+      "name": "NIPPULETI DHATRI",
+      "roll": "24A81A0547",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9121931967",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0548",
+      "password": "24A81A0548",
+      "name": "PALLI JESHMI SRI",
+      "roll": "24A81A0548",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7396284402",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0549",
+      "password": "24A81A0549",
+      "name": "PULI NIHAL KASI NARAYANA",
+      "roll": "24A81A0549",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8247500466",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0550",
+      "password": "24A81A0550",
+      "name": "SALA SOWMYA",
+      "roll": "24A81A0550",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7989559719",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0551",
+      "password": "24A81A0551",
+      "name": "SALADI PURNA RAJENDRA",
+      "roll": "24A81A0551",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8790949399",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0552",
+      "password": "24A81A0552",
+      "name": "SATHIVELLI SAI KRISHNA",
+      "roll": "24A81A0552",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9515982427",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0553",
+      "password": "24A81A0553",
+      "name": "SHAIK HAIFA",
+      "roll": "24A81A0553",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9959909938",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0554",
+      "password": "24A81A0554",
+      "name": "SHAIK HARUN",
+      "roll": "24A81A0554",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8977163644",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0555",
+      "password": "24A81A0555",
+      "name": "SHAIK SUPIYA SYRA BHANU",
+      "roll": "24A81A0555",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9515738799",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0556",
+      "password": "24A81A0556",
+      "name": "SIRIGINEEDI NANDINI DEVI",
+      "roll": "24A81A0556",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9110779939",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0557",
+      "password": "24A81A0557",
+      "name": "SURPANI LASYA SRI",
+      "roll": "24A81A0557",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9963474534",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0558",
+      "password": "24A81A0558",
+      "name": "TADEPALLI VIVEK",
+      "roll": "24A81A0558",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7989273334",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0559",
+      "password": "24A81A0559",
+      "name": "TIRUMANI SIVA NAGA LAKSHMI",
+      "roll": "24A81A0559",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7993686344",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0560",
+      "password": "24A81A0560",
+      "name": "VENDRA LAKSHMI HASINI",
+      "roll": "24A81A0560",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "6302699932",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0561",
+      "password": "24A81A0561",
+      "name": "VADDI MOHANA DEEPIKA",
+      "roll": "24A81A0561",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9849226702",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0562",
+      "password": "24A81A0562",
+      "name": "YADLA AJAY",
+      "roll": "24A81A0562",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8019593805",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0501",
+      "password": "25A85A0501",
+      "name": "ALLA HARSHA VARDHAN",
+      "roll": "25A85A0501",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8328120711",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0502",
+      "password": "25A85A0502",
+      "name": "BANDELA BHANU PRAKASH",
+      "roll": "25A85A0502",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7842823200",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0503",
+      "password": "25A85A0503",
+      "name": "BOKKE SUREKHA",
+      "roll": "25A85A0503",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9014835311",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0504",
+      "password": "25A85A0504",
+      "name": "KAKI MUKESH",
+      "roll": "25A85A0504",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8309913106",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0505",
+      "password": "25A85A0505",
+      "name": "KORLEPARA GNANESWAR",
+      "roll": "25A85A0505",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7780575556",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0506",
+      "password": "25A85A0506",
+      "name": "PALIVELA MOUNIKA SATYA KEERTHI",
+      "roll": "25A85A0506",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "8500347819",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0507",
+      "password": "25A85A0507",
+      "name": "TAMMIREDDI SATYA VENKATA PUSHPA",
+      "roll": "25A85A0507",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "7993365727",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0508",
+      "password": "25A85A0508",
+      "name": "VADAPALLI KIRAN",
+      "roll": "25A85A0508",
+      "section": "CSE-A",
+      "email": "123456789@gmail.com",
+      "phone": "9296159052",
+      "major": "Computer Science",
+      "photo": ""
+    }
+  ],
+  "CSE-B": [
+    {
+      "username": "24A81A0563",
+      "password": "24A81A0563",
+      "name": "ADDALA RESHMA DEVI",
+      "roll": "24A81A0563",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9640078206",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0564",
+      "password": "24A81A0564",
+      "name": "ADDANKI ANITHA",
+      "roll": "24A81A0564",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9515583769",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0565",
+      "password": "24A81A0565",
+      "name": "ADURTHI VENKATA SIVA PRASAD",
+      "roll": "24A81A0565",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8309476908",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0566",
+      "password": "24A81A0566",
+      "name": "ALUGOLU DEEPTHI ASHIKA",
+      "roll": "24A81A0566",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9059505759",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0567",
+      "password": "24A81A0567",
+      "name": "ANDE DISWOJA PADMAVATHI",
+      "roll": "24A81A0567",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9502106244",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0568",
+      "password": "24A81A0568",
+      "name": "ARJI HEMAMBICA",
+      "roll": "24A81A0568",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7036383386",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0569",
+      "password": "24A81A0569",
+      "name": "BATCHU DESNI NIRANJAN",
+      "roll": "24A81A0569",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8341551925",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0570",
+      "password": "24A81A0570",
+      "name": "BODDUPALLI SIVANI",
+      "roll": "24A81A0570",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8096889953",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0571",
+      "password": "24A81A0571",
+      "name": "BOPPE NAGADEVI",
+      "roll": "24A81A0571",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9392370642",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0572",
+      "password": "24A81A0572",
+      "name": "CHAPALA ANGILINA",
+      "roll": "24A81A0572",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7780460948",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0573",
+      "password": "24A81A0573",
+      "name": "DAMARASINGU MADHU SRI LAKSHMI",
+      "roll": "24A81A0573",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9491398697",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0574",
+      "password": "24A81A0574",
+      "name": "EDULLA LIKHITHA GOURI",
+      "roll": "24A81A0574",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9963201326",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0575",
+      "password": "24A81A0575",
+      "name": "GANNABATTHULA VENKATA MANI DEEPIKA",
+      "roll": "24A81A0575",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8309164585",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0576",
+      "password": "24A81A0576",
+      "name": "GOWRNI SAI RAM",
+      "roll": "24A81A0576",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7288082552",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0577",
+      "password": "24A81A0577",
+      "name": "GUTALA KRISHNA VAMSI",
+      "roll": "24A81A0577",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9492823773",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0578",
+      "password": "24A81A0578",
+      "name": "JAGGAMPUDI SURESH",
+      "roll": "24A81A0578",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9398642434",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0579",
+      "password": "24A81A0579",
+      "name": "JAKKAMSETTI HARIKA",
+      "roll": "24A81A0579",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "6303122305",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0580",
+      "password": "24A81A0580",
+      "name": "JOGI AKHIL",
+      "roll": "24A81A0580",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7569096082",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0581",
+      "password": "24A81A0581",
+      "name": "KADALI CHAITANYA",
+      "roll": "24A81A0581",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9390003979",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0582",
+      "password": "24A81A0582",
+      "name": "KAJULURI KESAVA PRIYA",
+      "roll": "24A81A0582",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8555906680",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0583",
+      "password": "24A81A0583",
+      "name": "KAKI POOJA SRI PRAVALLIKA",
+      "roll": "24A81A0583",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9110313089",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0584",
+      "password": "24A81A0584",
+      "name": "KARUMAJJI DHANUSH",
+      "roll": "24A81A0584",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9059909559",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0585",
+      "password": "24A81A0585",
+      "name": "KESANAPALLI JAHNAVI DEVI",
+      "roll": "24A81A0585",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7997676164",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0586",
+      "password": "24A81A0586",
+      "name": "KONA VENKATA NAGA DURGADEVI",
+      "roll": "24A81A0586",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "6309440541",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0587",
+      "password": "24A81A0587",
+      "name": "KOPPINEEDI LAKSHMI PRASANNA",
+      "roll": "24A81A0587",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8501955227",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0588",
+      "password": "24A81A0588",
+      "name": "KOPPULA SATYA PRIYA",
+      "roll": "24A81A0588",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7601018438",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0589",
+      "password": "24A81A0589",
+      "name": "KOTA LEELA ANVESH DURGA SRI",
+      "roll": "24A81A0589",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9392431076",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0590",
+      "password": "24A81A0590",
+      "name": "KURAPATI SRUJANA",
+      "roll": "24A81A0590",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9494685143",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0591",
+      "password": "24A81A0591",
+      "name": "MANDAPATI SAI SRIKAR",
+      "roll": "24A81A0591",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9642617423",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0592",
+      "password": "24A81A0592",
+      "name": "MANDELA BINDHU MADHAVI",
+      "roll": "24A81A0592",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9603565396",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0593",
+      "password": "24A81A0593",
+      "name": "MANNE CHARAN RAJU",
+      "roll": "24A81A0593",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9392932629",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0594",
+      "password": "24A81A0594",
+      "name": "MARUKURTHI MARY JONES",
+      "roll": "24A81A0594",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9951056935",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0595",
+      "password": "24A81A0595",
+      "name": "MULAKALA SIRISHA",
+      "roll": "24A81A0595",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7675991197",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0596",
+      "password": "24A81A0596",
+      "name": "MUPPIDI NAGA DURGA AISHWARYA",
+      "roll": "24A81A0596",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9182600630",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0597",
+      "password": "24A81A0597",
+      "name": "MUTYALA PAVAN",
+      "roll": "24A81A0597",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8374822815",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0598",
+      "password": "24A81A0598",
+      "name": "NAKKA TEJASWI NAGA VENKATA ANIL KUMAR",
+      "roll": "24A81A0598",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "6304926115",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0599",
+      "password": "24A81A0599",
+      "name": "NAMBURI SYLESH",
+      "roll": "24A81A0599",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8977463659",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A0",
+      "password": "24A81A05A0",
+      "name": "NAMMI RAKESH",
+      "roll": "24A81A05A0",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9348112266",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A1",
+      "password": "24A81A05A1",
+      "name": "NAMMITHI ANUSHA",
+      "roll": "24A81A05A1",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7032089319",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A2",
+      "password": "24A81A05A2",
+      "name": "NEELAPALA MUTHYALU",
+      "roll": "24A81A05A2",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9908830187",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A3",
+      "password": "24A81A05A3",
+      "name": "NUKAPALLI LIKHITHA",
+      "roll": "24A81A05A3",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7995165768",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A4",
+      "password": "24A81A05A4",
+      "name": "NULU HEMANTH SAI DURGA SRIKAR",
+      "roll": "24A81A05A4",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8074536136",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A5",
+      "password": "24A81A05A5",
+      "name": "PATHURI ANKITHA",
+      "roll": "24A81A05A5",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8555958500",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A6",
+      "password": "24A81A05A6",
+      "name": "RAMAVARAPU ESWARA DURGA ASHOK",
+      "roll": "24A81A05A6",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9346282400",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A7",
+      "password": "24A81A05A7",
+      "name": "RAMKURI VARUN TEJA",
+      "roll": "24A81A05A7",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8919436474",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A8",
+      "password": "24A81A05A8",
+      "name": "ROBBI DEVI MEGHANA",
+      "roll": "24A81A05A8",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9866698399",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05A9",
+      "password": "24A81A05A9",
+      "name": "SADANALA VIJAYA RATNA KUMAR",
+      "roll": "24A81A05A9",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9154441424",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B0",
+      "password": "24A81A05B0",
+      "name": "SAI DURGA PHANI KAPILA SREE Y",
+      "roll": "24A81A05B0",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9848899886",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B1",
+      "password": "24A81A05B1",
+      "name": "SAKA JAYAMMA",
+      "roll": "24A81A05B1",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8309139989",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B2",
+      "password": "24A81A05B2",
+      "name": "SATTI YASASWINITA",
+      "roll": "24A81A05B2",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7993128093",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B3",
+      "password": "24A81A05B3",
+      "name": "SHAIK SAPHIYA",
+      "roll": "24A81A05B3",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7893547778",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B4",
+      "password": "24A81A05B4",
+      "name": "SHEIK TAHERA",
+      "roll": "24A81A05B4",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9618822438",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B5",
+      "password": "24A81A05B5",
+      "name": "SIRIKI BHAVYA SRI LAKSHMI",
+      "roll": "24A81A05B5",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7702594939",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B6",
+      "password": "24A81A05B6",
+      "name": "SODADASU BALU",
+      "roll": "24A81A05B6",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "6304991779",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B7",
+      "password": "24A81A05B7",
+      "name": "TAGARAPU LAKSHYA",
+      "roll": "24A81A05B7",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9948923129",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B8",
+      "password": "24A81A05B8",
+      "name": "TANNIRU RAMACHANDRA RAO",
+      "roll": "24A81A05B8",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9182842918",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05B9",
+      "password": "24A81A05B9",
+      "name": "TIRUMALLA DURGA BHAVANI",
+      "roll": "24A81A05B9",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9391752155",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C0",
+      "password": "24A81A05C0",
+      "name": "UCHINTALA ANUSHA",
+      "roll": "24A81A05C0",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8247436833",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C1",
+      "password": "24A81A05C1",
+      "name": "UDDAGIRI UPENDRA",
+      "roll": "24A81A05C1",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8688193845",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C2",
+      "password": "24A81A05C2",
+      "name": "UPPALAPATI KUSUMA",
+      "roll": "24A81A05C2",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9392068581",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C3",
+      "password": "24A81A05C3",
+      "name": "VENDRA MOKSHA SRI",
+      "roll": "24A81A05C3",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8639151679",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C4",
+      "password": "24A81A05C4",
+      "name": "YALLABANDI YASASWINI SRIVALLI",
+      "roll": "24A81A05C4",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9494207551",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0509",
+      "password": "25A85A0509",
+      "name": "BOPPINETI KRANTHI KUMAR",
+      "roll": "25A85A0509",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9390683325",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0510",
+      "password": "25A85A0510",
+      "name": "BUDUMURI SURYA PRAKASH",
+      "roll": "25A85A0510",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9347049281",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0511",
+      "password": "25A85A0511",
+      "name": "KOLLI SRISANTH",
+      "roll": "25A85A0511",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "7989043362",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0512",
+      "password": "25A85A0512",
+      "name": "KOTIPALLI SAI",
+      "roll": "25A85A0512",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "8790226375",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0513",
+      "password": "25A85A0513",
+      "name": "R DEVI SRINIVASA LAKSHMI NARASIMHA SWAMY",
+      "roll": "25A85A0513",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9491927115",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0514",
+      "password": "25A85A0514",
+      "name": "RAVIPATI VEERA VENKATA SIVA SATYANARAYANA",
+      "roll": "25A85A0514",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "6301372501",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0515",
+      "password": "25A85A0515",
+      "name": "TIRUMALAREDDY BHARGAV VENKAT VINAY",
+      "roll": "25A85A0515",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9494246433",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0516",
+      "password": "25A85A0516",
+      "name": "TUMMALAPALLI NANDA GOPAL",
+      "roll": "25A85A0516",
+      "section": "CSE-B",
+      "email": "123456789@gamil.com",
+      "phone": "9704548426",
+      "major": "Computer Science",
+      "photo": ""
+    }
+  ],
+  "CSE-C": [
+    {
+      "username": "24A81A05C5",
+      "password": "24A81A05C5",
+      "name": "ACHANTA DIVYA TEJA SRI",
+      "roll": "24A81A05C5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7981486361",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C6",
+      "password": "24A81A05C6",
+      "name": "ACHYUTHA JYOTHSNA LATHA",
+      "roll": "24A81A05C6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9381967779",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C7",
+      "password": "24A81A05C7",
+      "name": "AKULA JYOTHI SRI",
+      "roll": "24A81A05C7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9959001075",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C8",
+      "password": "24A81A05C8",
+      "name": "ANISETTI GNANI RUPINI",
+      "roll": "24A81A05C8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9949717452",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05C9",
+      "password": "24A81A05C9",
+      "name": "AYINAPARTHI SUPRIYA",
+      "roll": "24A81A05C9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8186809122",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D0",
+      "password": "24A81A05D0",
+      "name": "BHUSARAPU DANESWARA SATYA RAGHU",
+      "roll": "24A81A05D0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8106622399",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D1",
+      "password": "24A81A05D1",
+      "name": "BADRI THARUN",
+      "roll": "24A81A05D1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9391183150",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D2",
+      "password": "24A81A05D2",
+      "name": "BOBBILI SYAM PREETHAM",
+      "roll": "24A81A05D2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6301542994",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D3",
+      "password": "24A81A05D3",
+      "name": "BODDU NAGA SAI DATTA",
+      "roll": "24A81A05D3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8121292501",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D4",
+      "password": "24A81A05D4",
+      "name": "BONDADA YASWANTH SRENI",
+      "roll": "24A81A05D4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6300495644",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D5",
+      "password": "24A81A05D5",
+      "name": "CHAPALA GOPIKA",
+      "roll": "24A81A05D5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9959479504",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D6",
+      "password": "24A81A05D6",
+      "name": "CHINNI LAKSHMI MANISHA",
+      "roll": "24A81A05D6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8106806599",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D7",
+      "password": "24A81A05D7",
+      "name": "DANDU ROHINI GEETHA RISHITHA",
+      "roll": "24A81A05D7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9573259348",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D8",
+      "password": "24A81A05D8",
+      "name": "DEVAPATI HEMANTH",
+      "roll": "24A81A05D8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9390239144",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05D9",
+      "password": "24A81A05D9",
+      "name": "DULAM RAMYA SRI",
+      "roll": "24A81A05D9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7396434181",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E0",
+      "password": "24A81A05E0",
+      "name": "EYUNNI SYSHA",
+      "roll": "24A81A05E0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9493500779",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E1",
+      "password": "24A81A05E1",
+      "name": "GOLLAPALLI SUDHASAGAR",
+      "roll": "24A81A05E1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9493480180",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E2",
+      "password": "24A81A05E2",
+      "name": "GUDIMETLA GOWTHAM",
+      "roll": "24A81A05E2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7306303130",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E3",
+      "password": "24A81A05E3",
+      "name": "GUMMADI REBEKAH JOICY",
+      "roll": "24A81A05E3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9177727272",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E4",
+      "password": "24A81A05E4",
+      "name": "JALLURI MEGHANA",
+      "roll": "24A81A05E4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7036705037",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E5",
+      "password": "24A81A05E5",
+      "name": "JETTIBOINA NAVYASRI",
+      "roll": "24A81A05E5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9949397376",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E6",
+      "password": "24A81A05E6",
+      "name": "JYOTHSNA SRI KORADA",
+      "roll": "24A81A05E6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9032147608",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E7",
+      "password": "24A81A05E7",
+      "name": "KAMISETTY BINDU",
+      "roll": "24A81A05E7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9440276369",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E8",
+      "password": "24A81A05E8",
+      "name": "KANDREGULA BHAGYA SRI",
+      "roll": "24A81A05E8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6300025523",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05E9",
+      "password": "24A81A05E9",
+      "name": "KANKANALA ARUNA",
+      "roll": "24A81A05E9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9704762181",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F0",
+      "password": "24A81A05F0",
+      "name": "KARUMURI NAGASRI",
+      "roll": "24A81A05F0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9392086864",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F1",
+      "password": "24A81A05F1",
+      "name": "KASANI POOJASRI",
+      "roll": "24A81A05F1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7569238608",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F2",
+      "password": "24A81A05F2",
+      "name": "KATTA SHANMUKA NAGA VEENA VENKATESWARI",
+      "roll": "24A81A05F2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9908843193",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F3",
+      "password": "24A81A05F3",
+      "name": "KODAMANCHILI VYSHITHA",
+      "roll": "24A81A05F3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7386471357",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F4",
+      "password": "24A81A05F4",
+      "name": "KOKKIRI LAVEENA",
+      "roll": "24A81A05F4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9550036169",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F5",
+      "password": "24A81A05F5",
+      "name": "KOKKIRIPATI BALU",
+      "roll": "24A81A05F5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9573923422",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F6",
+      "password": "24A81A05F6",
+      "name": "KOSURI VASANTHI",
+      "roll": "24A81A05F6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7981631061",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F7",
+      "password": "24A81A05F7",
+      "name": "KOTTAPALLI BALA SAGAR PRASAD",
+      "roll": "24A81A05F7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7680024829",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F8",
+      "password": "24A81A05F8",
+      "name": "KUNCHAM KOWSHIK",
+      "roll": "24A81A05F8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9618803342",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05F9",
+      "password": "24A81A05F9",
+      "name": "KURASALA JAYAVARDHAN",
+      "roll": "24A81A05F9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7815902369",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G0",
+      "password": "24A81A05G0",
+      "name": "LINGAMPALLI POOJITHA",
+      "roll": "24A81A05G0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7416719699",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G1",
+      "password": "24A81A05G1",
+      "name": "MAHADEVU PRASANNAKUMAR",
+      "roll": "24A81A05G1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7842594404",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G2",
+      "password": "24A81A05G2",
+      "name": "MAHANTHI DURGA PRASAD",
+      "roll": "24A81A05G2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9032367715",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G3",
+      "password": "24A81A05G3",
+      "name": "MANIKALA SAI RAVI TEJA",
+      "roll": "24A81A05G3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8019598150",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G4",
+      "password": "24A81A05G4",
+      "name": "MARADA HEMA PRIYA",
+      "roll": "24A81A05G4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9390473732",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G5",
+      "password": "24A81A05G5",
+      "name": "MUNDRU SUMANASWI",
+      "roll": "24A81A05G5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9849789316",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G6",
+      "password": "24A81A05G6",
+      "name": "NALAMATI ARUN TEJA",
+      "roll": "24A81A05G6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8499958665",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G7",
+      "password": "24A81A05G7",
+      "name": "OLETI DHATHRI",
+      "roll": "24A81A05G7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8121882125",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G8",
+      "password": "24A81A05G8",
+      "name": "PALA BHAVYASRI",
+      "roll": "24A81A05G8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8919033502",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05G9",
+      "password": "24A81A05G9",
+      "name": "PEETHALA PUNITH CHANDRA",
+      "roll": "24A81A05G9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8125477225",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H0",
+      "password": "24A81A05H0",
+      "name": "PESARAGANTI SUPRIYA",
+      "roll": "24A81A05H0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9491857499",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H1",
+      "password": "24A81A05H1",
+      "name": "PETA SYMON",
+      "roll": "24A81A05H1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8019811903",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H2",
+      "password": "24A81A05H2",
+      "name": "RAJABOYINA PAVAN NARASIMHA",
+      "roll": "24A81A05H2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9581914162",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H3",
+      "password": "24A81A05H3",
+      "name": "ROTTA SHARON KUMAR",
+      "roll": "24A81A05H3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9390110330",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H4",
+      "password": "24A81A05H4",
+      "name": "RUDRA SANTOSH",
+      "roll": "24A81A05H4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7337223135",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H5",
+      "password": "24A81A05H5",
+      "name": "SANAILA MAHA LAKSHMI",
+      "roll": "24A81A05H5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9908522271",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H6",
+      "password": "24A81A05H6",
+      "name": "SEETALAM HARSHITA VARDHINI SAI SRI VALLI",
+      "roll": "24A81A05H6",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6301524267",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H7",
+      "password": "24A81A05H7",
+      "name": "SHAIK SHARMILA",
+      "roll": "24A81A05H7",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9390197814",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H8",
+      "password": "24A81A05H8",
+      "name": "TIRAGATI PAVITHRA",
+      "roll": "24A81A05H8",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8297010396",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05H9",
+      "password": "24A81A05H9",
+      "name": "VANGA PADMATEJA",
+      "roll": "24A81A05H9",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7207266616",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I0",
+      "password": "24A81A05I0",
+      "name": "VEERAMALLU MOUNIKA",
+      "roll": "24A81A05I0",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6309905814",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I1",
+      "password": "24A81A05I1",
+      "name": "VEMULA GAYATHRI SAI",
+      "roll": "24A81A05I1",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9391493519",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I2",
+      "password": "24A81A05I2",
+      "name": "VISWANADHA RAO GEETHIKA",
+      "roll": "24A81A05I2",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8074051768",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I3",
+      "password": "24A81A05I3",
+      "name": "VUPPULURI SANTHI REDDY",
+      "roll": "24A81A05I3",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9392412661",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I4",
+      "password": "24A81A05I4",
+      "name": "YADLAPALLI RISHITHA",
+      "roll": "24A81A05I4",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8919216201",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I5",
+      "password": "24A81A05I5",
+      "name": "YELAMAREDDY SAI TEJA",
+      "roll": "24A81A05I5",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7989866451",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0517",
+      "password": "25A85A0517",
+      "name": "ARUGOLLU VARALAKSHMI DEVI",
+      "roll": "25A85A0517",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9866036865",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0518",
+      "password": "25A85A0518",
+      "name": "BADETI TEJASWINI",
+      "roll": "25A85A0518",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7075855376",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0519",
+      "password": "25A85A0519",
+      "name": "BOLLA SOUMYA SREE",
+      "roll": "25A85A0519",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8465932929",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0520",
+      "password": "25A85A0520",
+      "name": "GEDELA APARNA",
+      "roll": "25A85A0520",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "9885235008",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0521",
+      "password": "25A85A0521",
+      "name": "LINGALA GEETHAVANI",
+      "roll": "25A85A0521",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8688383939",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0522",
+      "password": "25A85A0522",
+      "name": "MANDAPAKA THRIVENI",
+      "roll": "25A85A0522",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8143911876",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0523",
+      "password": "25A85A0523",
+      "name": "THIPPA PADMA PRIYA",
+      "roll": "25A85A0523",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "8501943319",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0524",
+      "password": "25A85A0524",
+      "name": "VEMULA HARIKA",
+      "roll": "25A85A0524",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6309247691",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0525",
+      "password": "25A85A0525",
+      "name": "YANDRAPU ESTHERU KRUPA VARSHITHA RANI",
+      "roll": "25A85A0525",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "7981237998",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0526",
+      "password": "25A85A0526",
+      "name": "YEJARLA DIVYA SRI",
+      "roll": "25A85A0526",
+      "section": "CSE-C",
+      "email": "123456789@gmail.com",
+      "phone": "6281098122",
+      "major": "Computer Science",
+      "photo": ""
+    }
+  ],
+  "CSE-D": [
+    {
+      "username": "23A81A05M7",
+      "password": "23A81A05M7",
+      "name": "MARAPATLA CHITTI",
+      "roll": "23A81A05M7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7995007922",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I6",
+      "password": "24A81A05I6",
+      "name": "AGISETTI NARESH",
+      "roll": "24A81A05I6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9704947408",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I7",
+      "password": "24A81A05I7",
+      "name": "AKULA MOHANARUPA",
+      "roll": "24A81A05I7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7993265443",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I8",
+      "password": "24A81A05I8",
+      "name": "ATRAGADA VASANTHI",
+      "roll": "24A81A05I8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9951060139",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05I9",
+      "password": "24A81A05I9",
+      "name": "BANKAPALLI YAMUNA",
+      "roll": "24A81A05I9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9182302552",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J0",
+      "password": "24A81A05J0",
+      "name": "CHEKU SAI KIRAN",
+      "roll": "24A81A05J0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7661026467",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J1",
+      "password": "24A81A05J1",
+      "name": "CHELLUBOINA SYAMALA",
+      "roll": "24A81A05J1",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7063946129",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J2",
+      "password": "24A81A05J2",
+      "name": "DENDUKURI JAYA SRUTHI",
+      "roll": "24A81A05J2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9505888331",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J3",
+      "password": "24A81A05J3",
+      "name": "DHRUVAN AARYA GUGGILAM",
+      "roll": "24A81A05J3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9642511594",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J4",
+      "password": "24A81A05J4",
+      "name": "GANAPAVARAPU VENNELA",
+      "roll": "24A81A05J4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9381115789",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J5",
+      "password": "24A81A05J5",
+      "name": "GILLA HEMANTH",
+      "roll": "24A81A05J5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9948313615",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J6",
+      "password": "24A81A05J6",
+      "name": "GOGAM VENKATA LAKSHMI",
+      "roll": "24A81A05J6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8309014824",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J7",
+      "password": "24A81A05J7",
+      "name": "GUDAVALLI SOWMYA",
+      "roll": "24A81A05J7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6305895802",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J8",
+      "password": "24A81A05J8",
+      "name": "GUDIMETLA AMRUTHA",
+      "roll": "24A81A05J8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6305372295",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05J9",
+      "password": "24A81A05J9",
+      "name": "GUNNAM LEKHYA HANEESHA",
+      "roll": "24A81A05J9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8125128136",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K0",
+      "password": "24A81A05K0",
+      "name": "JALA KANAKA MAHALAKSHMI",
+      "roll": "24A81A05K0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9705352482",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K1",
+      "password": "24A81A05K1",
+      "name": "JAMI MOUNIKA",
+      "roll": "24A81A05K1",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8555893803",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K2",
+      "password": "24A81A05K2",
+      "name": "JAVVADI KARTHIKEYA",
+      "roll": "24A81A05K2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9391535757",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K3",
+      "password": "24A81A05K3",
+      "name": "KANDULA JAYA SIVA KRISHNA",
+      "roll": "24A81A05K3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7981567149",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K4",
+      "password": "24A81A05K4",
+      "name": "KANUPURI RAMA PRIYA",
+      "roll": "24A81A05K4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9391011185",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K5",
+      "password": "24A81A05K5",
+      "name": "KAVURU HARSHITH",
+      "roll": "24A81A05K5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9392868153",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K6",
+      "password": "24A81A05K6",
+      "name": "KONDRA SANTHOSH KUMAR",
+      "roll": "24A81A05K6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6304241374",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K7",
+      "password": "24A81A05K7",
+      "name": "KUKKALA HEMA SRI",
+      "roll": "24A81A05K7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7396287698",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K8",
+      "password": "24A81A05K8",
+      "name": "KUNAPAMU VARSHINI",
+      "roll": "24A81A05K8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8143128977",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05K9",
+      "password": "24A81A05K9",
+      "name": "MACHHA DURGA SOWJANYA",
+      "roll": "24A81A05K9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9000898342",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L0",
+      "password": "24A81A05L0",
+      "name": "MAMIDISETTY TEESHIKA DHAMAYANTHI",
+      "roll": "24A81A05L0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7337304746",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L1",
+      "password": "24A81A05L1",
+      "name": "MANEPALLI NIKHITA",
+      "roll": "24A81A05L1",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9398462188",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L2",
+      "password": "24A81A05L2",
+      "name": "MEDA BINDU ANANTA TARAK VARMA",
+      "roll": "24A81A05L2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6305714279",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L3",
+      "password": "24A81A05L3",
+      "name": "MEKA BADRINADH",
+      "roll": "24A81A05L3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7780634788",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L4",
+      "password": "24A81A05L4",
+      "name": "MOHAMMAD AFREEN FIRDOS",
+      "roll": "24A81A05L4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7382115738",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L5",
+      "password": "24A81A05L5",
+      "name": "MUDIGANTI NAGA DURGA RAO",
+      "roll": "24A81A05L5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6303176299",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L6",
+      "password": "24A81A05L6",
+      "name": "MUPPIDI YAMINI",
+      "roll": "24A81A05L6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8374933064",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L7",
+      "password": "24A81A05L7",
+      "name": "NADAKUDURU JYOTHI",
+      "roll": "24A81A05L7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8639244822",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L8",
+      "password": "24A81A05L8",
+      "name": "NALLI SRIVALLI",
+      "roll": "24A81A05L8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7386300982",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05L9",
+      "password": "24A81A05L9",
+      "name": "NANDIGAM SAI SWAROOP",
+      "roll": "24A81A05L9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6300624801",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M0",
+      "password": "24A81A05M0",
+      "name": "NAYUDU BALA NAGESWARI",
+      "roll": "24A81A05M0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7416635845",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M2",
+      "password": "24A81A05M2",
+      "name": "OLIPILLI SUSHMITHA",
+      "roll": "24A81A05M2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9010559219",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M3",
+      "password": "24A81A05M3",
+      "name": "PADALA ROHINI RAMYA",
+      "roll": "24A81A05M3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7032163111",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M4",
+      "password": "24A81A05M4",
+      "name": "PADMANABHUNI H N VENKATA LAKSHMI VYSHNAVI",
+      "roll": "24A81A05M4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9030385739",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M5",
+      "password": "24A81A05M5",
+      "name": "PAMARTHI LALITHA",
+      "roll": "24A81A05M5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9989763978",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M6",
+      "password": "24A81A05M6",
+      "name": "PARASA LOKESH",
+      "roll": "24A81A05M6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6305617477",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M7",
+      "password": "24A81A05M7",
+      "name": "PARIMI SRIRAM SARAN",
+      "roll": "24A81A05M7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8500923239",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M8",
+      "password": "24A81A05M8",
+      "name": "PEDDINTI NIKHIL",
+      "roll": "24A81A05M8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8700439318",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05M9",
+      "password": "24A81A05M9",
+      "name": "PILLI KEERTHANA",
+      "roll": "24A81A05M9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9392088639",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N0",
+      "password": "24A81A05N0",
+      "name": "PUVVALA LAKSHMI SAMBHAVI",
+      "roll": "24A81A05N0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9490888235",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N1",
+      "password": "24A81A05N1",
+      "name": "RAMAYANAM ROHIT SAI SURYA BHASKAR",
+      "roll": "24A81A05N1",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8500818777",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N2",
+      "password": "24A81A05N2",
+      "name": "RUDRA HARIKA MADHURI",
+      "roll": "24A81A05N2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7569037277",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N3",
+      "password": "24A81A05N3",
+      "name": "RUNKANA DEVENDAR NAIDU",
+      "roll": "24A81A05N3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9959852538",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N4",
+      "password": "24A81A05N4",
+      "name": "SANAGAPALLI DHANA SRI",
+      "roll": "24A81A05N4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6301667980",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N5",
+      "password": "24A81A05N5",
+      "name": "SHAIK ABDUL RASHEED",
+      "roll": "24A81A05N5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8688797959",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N6",
+      "password": "24A81A05N6",
+      "name": "SHAIK SHAHEDA",
+      "roll": "24A81A05N6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9908824577",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N7",
+      "password": "24A81A05N7",
+      "name": "SHEIK JAHARULLA",
+      "roll": "24A81A05N7",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6304753041",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N8",
+      "password": "24A81A05N8",
+      "name": "TADEPALLI BALA DURGA",
+      "roll": "24A81A05N8",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9959877047",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05N9",
+      "password": "24A81A05N9",
+      "name": "TADI PURNA ABHISHEK",
+      "roll": "24A81A05N9",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9392691788",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O0",
+      "password": "24A81A05O0",
+      "name": "TADIGADAPA VIMALA",
+      "roll": "24A81A05O0",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8897905007",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O1",
+      "password": "24A81A05O1",
+      "name": "TATINENI GNYANADA",
+      "roll": "24A81A05O1",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7396364443",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O2",
+      "password": "24A81A05O2",
+      "name": "THOTA NAGA SATYA SAI BALAJI",
+      "roll": "24A81A05O2",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7337095197",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O3",
+      "password": "24A81A05O3",
+      "name": "THOTTRAMUDI JASMINE",
+      "roll": "24A81A05O3",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9553707966",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O4",
+      "password": "24A81A05O4",
+      "name": "UMMIDI LAKSHMI SAI RAMA TEJASWI",
+      "roll": "24A81A05O4",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9347110984",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O5",
+      "password": "24A81A05O5",
+      "name": "VEJJU RUPA PRIYANKA",
+      "roll": "24A81A05O5",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9618570278",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O6",
+      "password": "24A81A05O6",
+      "name": "YELURI YESHWANTH",
+      "roll": "24A81A05O6",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8121216868",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0527",
+      "password": "25A85A0527",
+      "name": "BORRA GAYATHRI",
+      "roll": "25A85A0527",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7075540557",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0528",
+      "password": "25A85A0528",
+      "name": "CHILAKALAPUDI KEERTHI SAI",
+      "roll": "25A85A0528",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6309729557",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0529",
+      "password": "25A85A0529",
+      "name": "GUDAVALLI RENUKA",
+      "roll": "25A85A0529",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7680851642",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0530",
+      "password": "25A85A0530",
+      "name": "KARRI CHANDRIKA",
+      "roll": "25A85A0530",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9182585782",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0531",
+      "password": "25A85A0531",
+      "name": "MALLULA MAHITHA",
+      "roll": "25A85A0531",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "6301664903",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0532",
+      "password": "25A85A0532",
+      "name": "NANDAM NAGA SAI PRAVALLIKA",
+      "roll": "25A85A0532",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "9704482086",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0533",
+      "password": "25A85A0533",
+      "name": "NAYUDU NEERAJA",
+      "roll": "25A85A0533",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8977428469",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0534",
+      "password": "25A85A0534",
+      "name": "POLISETTI MOUNIKA",
+      "roll": "25A85A0534",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "7013611186",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0535",
+      "password": "25A85A0535",
+      "name": "POLUMATI RANI",
+      "roll": "25A85A0535",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8309209495",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0536",
+      "password": "25A85A0536",
+      "name": "TAMMA SIRI",
+      "roll": "25A85A0536",
+      "section": "CSE-D",
+      "email": "123456789@gmail.com",
+      "phone": "8143621516",
+      "major": "Computer Science",
+      "photo": ""
+    }
+  ],
+  "CSE-E": [
+    {
+      "username": "24A81A05O7",
+      "password": "24A81A05O7",
+      "name": "AGRAVARAPU NAGA LALITHA DEVI",
+      "roll": "24A81A05O7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9676574874",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O8",
+      "password": "24A81A05O8",
+      "name": "AGURU VENUNADH",
+      "roll": "24A81A05O8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7013401895",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05O9",
+      "password": "24A81A05O9",
+      "name": "YANDAMURI VINAY VARMA",
+      "roll": "24A81A05O9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9014531726",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P0",
+      "password": "24A81A05P0",
+      "name": "BATTU HANI",
+      "roll": "24A81A05P0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8121744959",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P1",
+      "password": "24A81A05P1",
+      "name": "VAMISETTI KURMA SRI MARUTI DEVI",
+      "roll": "24A81A05P1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7093405860",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P2",
+      "password": "24A81A05P2",
+      "name": "CHAMARTHI GAYATHRI SATYAVATHI",
+      "roll": "24A81A05P2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9392360717",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P3",
+      "password": "24A81A05P3",
+      "name": "CHAKKA DHANYA SREE",
+      "roll": "24A81A05P3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7989613335",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P4",
+      "password": "24A81A05P4",
+      "name": "CHAKKA HARSHA VARDHAN GUPTA",
+      "roll": "24A81A05P4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7032098568",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P5",
+      "password": "24A81A05P5",
+      "name": "CHAVVA ARUHYA",
+      "roll": "24A81A05P5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7601001525",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P6",
+      "password": "24A81A05P6",
+      "name": "CHITIKENA JIJIYA KUMARI",
+      "roll": "24A81A05P6",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7780663060",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P7",
+      "password": "24A81A05P7",
+      "name": "DANDUMONU DURGA RAVEENDRA",
+      "roll": "24A81A05P7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6302587054",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P8",
+      "password": "24A81A05P8",
+      "name": "DARAPUREDDI MANIKANTA",
+      "roll": "24A81A05P8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8125135908",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05P9",
+      "password": "24A81A05P9",
+      "name": "DASARI VIJAYA",
+      "roll": "24A81A05P9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8978333302",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q0",
+      "password": "24A81A05Q0",
+      "name": "DEVINA VARUN",
+      "roll": "24A81A05Q0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6303054354",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q1",
+      "password": "24A81A05Q1",
+      "name": "DEYYALA PURNIMA",
+      "roll": "24A81A05Q1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6305852202",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q2",
+      "password": "24A81A05Q2",
+      "name": "DIRSIPAM LEKHANA",
+      "roll": "24A81A05Q2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9182270119",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q3",
+      "password": "24A81A05Q3",
+      "name": "DUKKIPATI MAMATHA",
+      "roll": "24A81A05Q3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6303698433",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q4",
+      "password": "24A81A05Q4",
+      "name": "GOKA MONIKA",
+      "roll": "24A81A05Q4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6301452450",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q5",
+      "password": "24A81A05Q5",
+      "name": "GOPISETTI MANJU VYSHNAVI",
+      "roll": "24A81A05Q5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9121655414",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q6",
+      "password": "24A81A05Q6",
+      "name": "INTI LAKSHMI PRASANNA",
+      "roll": "24A81A05Q6",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6303139272",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q7",
+      "password": "24A81A05Q7",
+      "name": "INTURI BRAHMA TEJA",
+      "roll": "24A81A05Q7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8074880281",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q8",
+      "password": "24A81A05Q8",
+      "name": "JADDU S V N SAI MANIKANTA",
+      "roll": "24A81A05Q8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05Q9",
+      "password": "24A81A05Q9",
+      "name": "JAGABATHULA MIKHIL",
+      "roll": "24A81A05Q9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7981769530",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R0",
+      "password": "24A81A05R0",
+      "name": "KAGITALA JYOTHIKA",
+      "roll": "24A81A05R0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9640784797",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R1",
+      "password": "24A81A05R1",
+      "name": "KAMANA MOHANA TEJA",
+      "roll": "24A81A05R1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8143545434",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R2",
+      "password": "24A81A05R2",
+      "name": "KARETI LIKHITA",
+      "roll": "24A81A05R2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7993729272",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R3",
+      "password": "24A81A05R3",
+      "name": "KONA ANANTHA LAKSHMI",
+      "roll": "24A81A05R3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8106114993",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R4",
+      "password": "24A81A05R4",
+      "name": "KORADA HEMA SREE",
+      "roll": "24A81A05R4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8341435783",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R5",
+      "password": "24A81A05R5",
+      "name": "KORAPATI KRISHNAVENI",
+      "roll": "24A81A05R5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7337016151",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R6",
+      "password": "24A81A05R6",
+      "name": "LAAVUDIYA KEERTHANA",
+      "roll": "24A81A05R6",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7815813082",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R7",
+      "password": "24A81A05R7",
+      "name": "MANEPALLI BALA SAI RAJA HASINI",
+      "roll": "24A81A05R7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9346832690",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R8",
+      "password": "24A81A05R8",
+      "name": "MEGHANA SRI RAMYA BOBBILI",
+      "roll": "24A81A05R8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7032892006",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05R9",
+      "password": "24A81A05R9",
+      "name": "MYGAPULA SUJEETHA SRI",
+      "roll": "24A81A05R9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9705043384",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S0",
+      "password": "24A81A05S0",
+      "name": "MYLABATHULA SANJANA",
+      "roll": "24A81A05S0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9959633884",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S1",
+      "password": "24A81A05S1",
+      "name": "NULAKANI SATYA NAGA PAVAN TEJA",
+      "roll": "24A81A05S1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9014235334",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S2",
+      "password": "24A81A05S2",
+      "name": "NEKURI SATYA PRAKASH",
+      "roll": "24A81A05S2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9063820564",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S3",
+      "password": "24A81A05S3",
+      "name": "NELAPUDI NIRUSHA",
+      "roll": "24A81A05S3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8499934736",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S4",
+      "password": "24A81A05S4",
+      "name": "NIMMALA MERY JONCEY",
+      "roll": "24A81A05S4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "6303988659",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S5",
+      "password": "24A81A05S5",
+      "name": "NIMMALA SUSMITA SRI",
+      "roll": "24A81A05S5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9652105830",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S7",
+      "password": "24A81A05S7",
+      "name": "PADALA KOWSHIK",
+      "roll": "24A81A05S7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8885554627",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S8",
+      "password": "24A81A05S8",
+      "name": "PALIVELA PREM KUMAR",
+      "roll": "24A81A05S8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9949108442",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05S9",
+      "password": "24A81A05S9",
+      "name": "PICHUKA VARUN KUMAR",
+      "roll": "24A81A05S9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9666200627",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T0",
+      "password": "24A81A05T0",
+      "name": "PODILI DEEPIKA PRAVARSHA SRI",
+      "roll": "24A81A05T0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9989978777",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T1",
+      "password": "24A81A05T1",
+      "name": "POGULA NANDINI",
+      "roll": "24A81A05T1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9652706259",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T2",
+      "password": "24A81A05T2",
+      "name": "PURELLA TEJENDRA",
+      "roll": "24A81A05T2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8121396154",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T3",
+      "password": "24A81A05T3",
+      "name": "RACHAKONDA SRIVALLI",
+      "roll": "24A81A05T3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9390291456",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T4",
+      "password": "24A81A05T4",
+      "name": "RAYI NISSI JOHNSON",
+      "roll": "24A81A05T4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9701636189",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T5",
+      "password": "24A81A05T5",
+      "name": "REDDY JAGADEEP",
+      "roll": "24A81A05T5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9515025895",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T6",
+      "password": "24A81A05T6",
+      "name": "SAYYAD ARSHIA",
+      "roll": "24A81A05T6",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8897820331",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T7",
+      "password": "24A81A05T7",
+      "name": "SHAIK ASHIK",
+      "roll": "24A81A05T7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7989605287",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T8",
+      "password": "24A81A05T8",
+      "name": "SHAIK SHABANA",
+      "roll": "24A81A05T8",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7674079050",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05T9",
+      "password": "24A81A05T9",
+      "name": "SIRRA RESHMA",
+      "roll": "24A81A05T9",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8247486734",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U0",
+      "password": "24A81A05U0",
+      "name": "SUDARSANAM LAKSHMI PRANATHI",
+      "roll": "24A81A05U0",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9959796995",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U1",
+      "password": "24A81A05U1",
+      "name": "THOTA SUPRAJA SPOORTHI",
+      "roll": "24A81A05U1",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9014575164",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U2",
+      "password": "24A81A05U2",
+      "name": "TUMMALA SATYA TEJASWI",
+      "roll": "24A81A05U2",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7981622004",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U3",
+      "password": "24A81A05U3",
+      "name": "TUMMALA TEJASWINI MOUNIKA",
+      "roll": "24A81A05U3",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8977467514",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U4",
+      "password": "24A81A05U4",
+      "name": "VARRE VINEETHA",
+      "roll": "24A81A05U4",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7569905711",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U5",
+      "password": "24A81A05U5",
+      "name": "VEGIREDDY UDAYA SATYA LAKSHMI",
+      "roll": "24A81A05U5",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9989282588",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U6",
+      "password": "24A81A05U6",
+      "name": "VELAGALA NAGA SAI NANDAKISHORE REDDY",
+      "roll": "24A81A05U6",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9154959689",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "24A81A05U7",
+      "password": "24A81A05U7",
+      "name": "VENDRA HARSHITHA",
+      "roll": "24A81A05U7",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8519948806",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0537",
+      "password": "25A85A0537",
+      "name": "BALAM LAKSHMI NARAYANA",
+      "roll": "25A85A0537",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9949469659",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0538",
+      "password": "25A85A0538",
+      "name": "GOLLAPALLI RAJU",
+      "roll": "25A85A0538",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9502229442",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0539",
+      "password": "25A85A0539",
+      "name": "KALLURI TANOOJ SAI",
+      "roll": "25A85A0539",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9951501624",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0540",
+      "password": "25A85A0540",
+      "name": "KANDIBOINA NAGA RAJU",
+      "roll": "25A85A0540",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8639660352",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0541",
+      "password": "25A85A0541",
+      "name": "MEDAPATI GOWTHAM",
+      "roll": "25A85A0541",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9666961306",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0542",
+      "password": "25A85A0542",
+      "name": "METTU DURGA SATISH",
+      "roll": "25A85A0542",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9493293691",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0543",
+      "password": "25A85A0543",
+      "name": "PONAMALA JATHIN RAJ",
+      "roll": "25A85A0543",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7671875764",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0544",
+      "password": "25A85A0544",
+      "name": "SAMANTHAKURTHI JITENDRA",
+      "roll": "25A85A0544",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "8341248757",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0545",
+      "password": "25A85A0545",
+      "name": "SANABOYINA NAGA VIKRANTH",
+      "roll": "25A85A0545",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9494153111",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0546",
+      "password": "25A85A0546",
+      "name": "SHAIKH PARVEZ SHABER",
+      "roll": "25A85A0546",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9885524462",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0547",
+      "password": "25A85A0547",
+      "name": "KARRI SUMANTH VENKATA REDDY",
+      "roll": "25A85A0547",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9989791820",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0548",
+      "password": "25A85A0548",
+      "name": "BATHU YUVARAJU",
+      "roll": "25A85A0548",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "7386315744",
+      "major": "Computer Science",
+      "photo": ""
+    },
+    {
+      "username": "25A85A0549",
+      "password": "25A85A0549",
+      "name": "ANIMOLU MANIKANTA SUBRAMANYAM",
+      "roll": "25A85A0549",
+      "section": "CSE-E",
+      "email": "123456789@gmail.com",
+      "phone": "9392987419",
+      "major": "Computer Science",
+      "photo": ""
+    }
+  ],
+  "CST": [
+    {
+      "username": "24A81A0601",
+      "password": "24A81A0601",
+      "name": "24A81A0601",
+      "roll": "24A81A0601",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0602",
+      "password": "24A81A0602",
+      "name": "24A81A0602",
+      "roll": "24A81A0602",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0603",
+      "password": "24A81A0603",
+      "name": "24A81A0603",
+      "roll": "24A81A0603",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0604",
+      "password": "24A81A0604",
+      "name": "24A81A0604",
+      "roll": "24A81A0604",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0605",
+      "password": "24A81A0605",
+      "name": "24A81A0605",
+      "roll": "24A81A0605",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0606",
+      "password": "24A81A0606",
+      "name": "24A81A0606",
+      "roll": "24A81A0606",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0607",
+      "password": "24A81A0607",
+      "name": "24A81A0607",
+      "roll": "24A81A0607",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0608",
+      "password": "24A81A0608",
+      "name": "24A81A0608",
+      "roll": "24A81A0608",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0609",
+      "password": "24A81A0609",
+      "name": "24A81A0609",
+      "roll": "24A81A0609",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0610",
+      "password": "24A81A0610",
+      "name": "24A81A0610",
+      "roll": "24A81A0610",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0611",
+      "password": "24A81A0611",
+      "name": "24A81A0611",
+      "roll": "24A81A0611",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0612",
+      "password": "24A81A0612",
+      "name": "24A81A0612",
+      "roll": "24A81A0612",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0613",
+      "password": "24A81A0613",
+      "name": "24A81A0613",
+      "roll": "24A81A0613",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0614",
+      "password": "24A81A0614",
+      "name": "24A81A0614",
+      "roll": "24A81A0614",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0615",
+      "password": "24A81A0615",
+      "name": "24A81A0615",
+      "roll": "24A81A0615",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0616",
+      "password": "24A81A0616",
+      "name": "24A81A0616",
+      "roll": "24A81A0616",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0617",
+      "password": "24A81A0617",
+      "name": "24A81A0617",
+      "roll": "24A81A0617",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0618",
+      "password": "24A81A0618",
+      "name": "24A81A0618",
+      "roll": "24A81A0618",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0619",
+      "password": "24A81A0619",
+      "name": "24A81A0619",
+      "roll": "24A81A0619",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0620",
+      "password": "24A81A0620",
+      "name": "24A81A0620",
+      "roll": "24A81A0620",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0621",
+      "password": "24A81A0621",
+      "name": "24A81A0621",
+      "roll": "24A81A0621",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0622",
+      "password": "24A81A0622",
+      "name": "24A81A0622",
+      "roll": "24A81A0622",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0623",
+      "password": "24A81A0623",
+      "name": "24A81A0623",
+      "roll": "24A81A0623",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0624",
+      "password": "24A81A0624",
+      "name": "24A81A0624",
+      "roll": "24A81A0624",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0625",
+      "password": "24A81A0625",
+      "name": "24A81A0625",
+      "roll": "24A81A0625",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0626",
+      "password": "24A81A0626",
+      "name": "24A81A0626",
+      "roll": "24A81A0626",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0627",
+      "password": "24A81A0627",
+      "name": "24A81A0627",
+      "roll": "24A81A0627",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0628",
+      "password": "24A81A0628",
+      "name": "24A81A0628",
+      "roll": "24A81A0628",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0629",
+      "password": "24A81A0629",
+      "name": "24A81A0629",
+      "roll": "24A81A0629",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0630",
+      "password": "24A81A0630",
+      "name": "24A81A0630",
+      "roll": "24A81A0630",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0631",
+      "password": "24A81A0631",
+      "name": "24A81A0631",
+      "roll": "24A81A0631",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0632",
+      "password": "24A81A0632",
+      "name": "24A81A0632",
+      "roll": "24A81A0632",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0633",
+      "password": "24A81A0633",
+      "name": "24A81A0633",
+      "roll": "24A81A0633",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0634",
+      "password": "24A81A0634",
+      "name": "24A81A0634",
+      "roll": "24A81A0634",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0635",
+      "password": "24A81A0635",
+      "name": "24A81A0635",
+      "roll": "24A81A0635",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0636",
+      "password": "24A81A0636",
+      "name": "24A81A0636",
+      "roll": "24A81A0636",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0637",
+      "password": "24A81A0637",
+      "name": "24A81A0637",
+      "roll": "24A81A0637",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0638",
+      "password": "24A81A0638",
+      "name": "24A81A0638",
+      "roll": "24A81A0638",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0639",
+      "password": "24A81A0639",
+      "name": "24A81A0639",
+      "roll": "24A81A0639",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0640",
+      "password": "24A81A0640",
+      "name": "24A81A0640",
+      "roll": "24A81A0640",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0641",
+      "password": "24A81A0641",
+      "name": "24A81A0641",
+      "roll": "24A81A0641",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0642",
+      "password": "24A81A0642",
+      "name": "24A81A0642",
+      "roll": "24A81A0642",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0643",
+      "password": "24A81A0643",
+      "name": "24A81A0643",
+      "roll": "24A81A0643",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0644",
+      "password": "24A81A0644",
+      "name": "24A81A0644",
+      "roll": "24A81A0644",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0645",
+      "password": "24A81A0645",
+      "name": "24A81A0645",
+      "roll": "24A81A0645",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0646",
+      "password": "24A81A0646",
+      "name": "24A81A0646",
+      "roll": "24A81A0646",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0647",
+      "password": "24A81A0647",
+      "name": "24A81A0647",
+      "roll": "24A81A0647",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0648",
+      "password": "24A81A0648",
+      "name": "24A81A0648",
+      "roll": "24A81A0648",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0649",
+      "password": "24A81A0649",
+      "name": "24A81A0649",
+      "roll": "24A81A0649",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0650",
+      "password": "24A81A0650",
+      "name": "24A81A0650",
+      "roll": "24A81A0650",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0651",
+      "password": "24A81A0651",
+      "name": "24A81A0651",
+      "roll": "24A81A0651",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0652",
+      "password": "24A81A0652",
+      "name": "24A81A0652",
+      "roll": "24A81A0652",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0653",
+      "password": "24A81A0653",
+      "name": "24A81A0653",
+      "roll": "24A81A0653",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0654",
+      "password": "24A81A0654",
+      "name": "24A81A0654",
+      "roll": "24A81A0654",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0655",
+      "password": "24A81A0655",
+      "name": "24A81A0655",
+      "roll": "24A81A0655",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0656",
+      "password": "24A81A0656",
+      "name": "24A81A0656",
+      "roll": "24A81A0656",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0657",
+      "password": "24A81A0657",
+      "name": "24A81A0657",
+      "roll": "24A81A0657",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0658",
+      "password": "24A81A0658",
+      "name": "24A81A0658",
+      "roll": "24A81A0658",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0659",
+      "password": "24A81A0659",
+      "name": "24A81A0659",
+      "roll": "24A81A0659",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0660",
+      "password": "24A81A0660",
+      "name": "24A81A0660",
+      "roll": "24A81A0660",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0661",
+      "password": "24A81A0661",
+      "name": "24A81A0661",
+      "roll": "24A81A0661",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0662",
+      "password": "24A81A0662",
+      "name": "24A81A0662",
+      "roll": "24A81A0662",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0663",
+      "password": "24A81A0663",
+      "name": "24A81A0663",
+      "roll": "24A81A0663",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0664",
+      "password": "24A81A0664",
+      "name": "24A81A0664",
+      "roll": "24A81A0664",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0665",
+      "password": "24A81A0665",
+      "name": "24A81A0665",
+      "roll": "24A81A0665",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A81A0666",
+      "password": "24A81A0666",
+      "name": "24A81A0666",
+      "roll": "24A81A0666",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0601",
+      "password": "24A85A0601",
+      "name": "24A85A0601",
+      "roll": "24A85A0601",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0602",
+      "password": "24A85A0602",
+      "name": "24A85A0602",
+      "roll": "24A85A0602",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0603",
+      "password": "24A85A0603",
+      "name": "24A85A0603",
+      "roll": "24A85A0603",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0604",
+      "password": "24A85A0604",
+      "name": "24A85A0604",
+      "roll": "24A85A0604",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0605",
+      "password": "24A85A0605",
+      "name": "24A85A0605",
+      "roll": "24A85A0605",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    },
+    {
+      "username": "24A85A0606",
+      "password": "24A85A0606",
+      "name": "24A85A0606",
+      "roll": "24A85A0606",
+      "section": "CST",
+      "email": "123456789@gmail.com",
+      "phone": "987456321",
+      "major": "Information technology",
+      "photo": ""
+    }
+  ]
+},
+      faculty: [ {username:'FAC123', password:'fac123', name:'Mr. Rama Rao', empId:'FAC123', dept:'CSE-A', email:'ramarao@vasavi.edu', phone:'+919988776655', designation:'Associate Professor', photo: ''} ],
+      principal: { username:'PRINC001', password:'princ001', name:'Dr. Rao', email:'principal@vasavi.edu', phone:'+919876543210', designation:'Principal', photo: '' },
+      submissions: { suggestions:[], complaints:[], reports:[], feedbacks:[] }
+    };
+
+    // load db from localStorage, or initialize with defaults
+    let db = loadFromStorage();
+    function loadFromStorage(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return JSON.parse(JSON.stringify(DEFAULT_DATA));
+        const parsed = JSON.parse(raw);
+        // ensure required structure and add photo keys if missing
+        parsed.students = parsed.students || DEFAULT_DATA.students;
+        parsed.faculty = parsed.faculty || DEFAULT_DATA.faculty;
+        parsed.principal = parsed.principal || DEFAULT_DATA.principal;
+        parsed.submissions = parsed.submissions || DEFAULT_DATA.submissions;
+
+        // normalize student entries to have photo property
+        for(const k of Object.keys(parsed.students)){
+          parsed.students[k] = parsed.students[k].map(u => ({ photo:'', ...u }));
+        }
+        parsed.faculty = parsed.faculty.map(f => ({ photo:'', ...f }));
+        parsed.principal = { photo:'', ...parsed.principal };
+
+        return parsed;
+      }catch(e){ console.error('load error',e); return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+    }
+    function saveToStorage(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+
+    /** -------------------- UTILITIES -------------------- **/
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;" })[c]); }
+    function formatDate(iso){ try{ return new Date(iso).toLocaleString(); }catch(e){ return iso; } }
+    function allStudentObjects(){ return Object.values(db.students).flat(); }
+    function getUserSubmissionCount(name){ return Object.values(db.submissions).flat().reduce((acc,arr)=> acc + arr.filter(e=>e.user===name).length,0); }
+    function byId(id){ return document.getElementById(id); }
+    function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+    function showToast(msg){ try{ alert(msg); }catch(e){ console.log(msg); } }
+
+    /** -------------------- APP STATE -------------------- **/
+    let currentRole = '';
+    let currentUser = null; // { role: 'student'|'teacher'|'principal', data: {...}, section: 'CSE-A' }
+
+    /** -------------------- INITIAL UI HOOKUP -------------------- **/
+    document.querySelectorAll('.role-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> selectRole(btn.dataset.role));
+    });
+    byId('hamburgerBtn').addEventListener('click', toggleSidebar);
+    byId('closeExportBtn').addEventListener('click', closeExportModal);
+    byId('copyExportBtn').addEventListener('click', copyExportToClipboard);
+    byId('logoutLink').addEventListener('click', e=>{ e.preventDefault(); logout(); });
+    byId('editProfileLink').addEventListener('click', e=>{ e.preventDefault(); showEditProfile(); });
+    byId('changePassLink').addEventListener('click', e=>{ e.preventDefault(); showChangePasswordForm(); });
+
+    /** -------------------- ROLE SELECTION & LOGIN -------------------- **/
+    function selectRole(role){
+      currentRole = role;
+      byId('roleSelection').style.display = 'none';
+      const loginPage = byId('loginPage');
+      loginPage.style.display = 'flex';
+      loginPage.innerHTML = `
+        <div class="login-box" aria-live="polite">
+          <h3>${role==='faculty'?'Faculty Login':role==='principal'?'Principal Login':'Student Login ('+escapeHtml(role)+')'}</h3>
+          <form id="loginForm">
+            <label>Username</label>
+            <input id="username" type="text" required autocomplete="username" />
+            <label>Password</label>
+            <input type="password" id="password" required autocomplete="current-password" />
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+              <div class="help-quiet"></div>
+              <div style="display:flex;gap:8px">
+                <button class="secondary-btn" type="button" id="backBtn">Back</button>
+                <button class="login-btn" type="submit">LOGIN</button>
+              </div>
+            </div>
+            <div id="login-error" class="error-msg" aria-live="assertive"></div>
+          </form>
+        </div>`;
+
+      byId('backBtn').addEventListener('click', backToRoleSelection);
+      byId('loginForm').addEventListener('submit', loginSubmit);
+    }
+
+    function backToRoleSelection(){
+      byId('loginPage').style.display = 'none';
+      byId('roleSelection').style.display = 'flex';
+      currentRole = '';
+    }
+
+    function loginSubmit(e){
+      e.preventDefault();
+      const user = byId('username').value.trim();
+      const pass = byId('password').value.trim();
+      let found = null;
+
+      if(currentRole === 'faculty'){
+        found = db.faculty.find(f => f.username.toLowerCase() === user.toLowerCase() && f.password === pass);
+        if(found){ currentUser = { role: 'teacher', data: clone(found) }; renderDashboard(); return; }
+      } else if(currentRole === 'principal'){
+        if(user.toLowerCase() === db.principal.username.toLowerCase() && pass === db.principal.password){ currentUser = { role: 'principal', data: clone(db.principal) }; renderDashboard(); return; }
+      } else {
+        const list = db.students[currentRole] || [];
+        found = list.find(s => s.username.toLowerCase() === user.toLowerCase() && s.password === pass);
+        if(found){ currentUser = { role: 'student', data: clone(found), section: currentRole }; renderDashboard(); return; }
+      }
+
+      byId('login-error').textContent = "Invalid username or password ❌";
+    }
+
+    /** -------------------- DASHBOARD RENDER -------------------- **/
+    function renderDashboard(){
+      byId('loginPage').style.display = 'none';
+      const dash = byId('dashboard'); dash.style.display = 'block';
+
+      const welcomeEl = byId('welcomeUser');
+      if(currentUser.role === 'student') welcomeEl.textContent = `Hi... Student (${escapeHtml(currentUser.section || '')})`;
+      else welcomeEl.textContent = 'Hi... ' + escapeHtml(currentUser.data.name || '');
+
+      const menu = byId('menuList'); menu.innerHTML = '';
+      const action = byId('actionContainer'); action.innerHTML = '';
+      const profileTitle = byId('profileTitle');
+
+      dash.classList.remove('student-role','teacher-role','principal-role');
+
+      let menuHtml = `<h2>Dashboard</h2>`;
+
+      // shared: quick view profile card with avatar
+      const avatarHTML = renderAvatarHTML(currentUser.data.photo || '', currentUser.data.name || '', 64);
+
+      if(currentUser.role === 'student'){
+        dash.classList.add('student-role');
+        profileTitle.textContent = `Student Profile - ${escapeHtml(currentUser.section || '')}`;
+
+        action.innerHTML = `
+          <div class="card">
+            <div class="profile-row">
+              <div class="avatar">${avatarHTML}</div>
+              <div>
+                <h3 style="margin:0">${escapeHtml(currentUser.data.name || '')}</h3>
+                <div class="muted-small">Roll: <b>${escapeHtml(currentUser.data.roll || 'N/A')}</b> · Section: <b>${escapeHtml(currentUser.section || '')}</b></div>
+                <div class="muted" style="margin-top:8px">
+                  Major: <b>${escapeHtml(currentUser.data.major || 'N/A')}</b><br>
+                  Email: <b>${escapeHtml(currentUser.data.email || 'N/A')}</b><br>
+                  Phone: <b>${escapeHtml(currentUser.data.phone || 'N/A')}</b>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        const myCount = getUserSubmissionCount(currentUser.data.name);
+        menuHtml += `
+          <div class="menu-item" onclick="loadForm('suggestion')">Upload Suggestion</div>
+          <div class="menu-item" onclick="loadForm('complaint')">Upload Complaint</div>
+          <div class="menu-item" onclick="loadForm('report')">Upload Report</div>
+          <div class="menu-item" onclick="loadForm('feedback')">Upload Feedback</div>
+          <hr>
+          <div class="menu-item" onclick="viewSubmissions('suggestions')">View Suggestions</div>
+          <div class="menu-item" onclick="viewSubmissions('complaints')">View Complaints</div>
+          <div class="menu-item" onclick="viewSubmissions('reports')">View Reports</div>
+          <div class="menu-item" onclick="viewSubmissions('feedbacks')">View Feedback</div>
+          <hr>
+          <div class="menu-item" onclick="viewMySubmissions()">📌 View My Submissions <span id="myCountBadge" class="badge">${myCount}</span></div>
+        `;
+      }
+
+      if(currentUser.role === 'teacher'){
+        dash.classList.add('teacher-role');
+        profileTitle.textContent = 'Faculty Profile';
+        action.innerHTML = `
+          <div class="card">
+            <div class="profile-row">
+              <div class="avatar">${avatarHTML}</div>
+              <div>
+                <h3 style="margin:0">${escapeHtml(currentUser.data.name)}</h3>
+                <div class="muted-small">Designation: <b>${escapeHtml(currentUser.data.designation || 'N/A')}</b> · EmpID: <b>${escapeHtml(currentUser.data.empId || '')}</b></div>
+                <div class="muted" style="margin-top:8px">
+                  Department: <b>${escapeHtml(currentUser.data.dept || '')}</b><br>
+                  Email: <b>${escapeHtml(currentUser.data.email || 'N/A')}</b><br>
+                  Phone: <b>${escapeHtml(currentUser.data.phone || 'N/A')}</b>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        menuHtml += `
+          <div class="menu-item" onclick="viewSubmissions('suggestions')">See Suggestions</div>
+          <div class="menu-item" onclick="viewSubmissions('complaints')">See Complaints</div>
+          <div class="menu-item" onclick="viewSubmissions('reports')">See Reports</div>
+          <div class="menu-item" onclick="viewSubmissions('feedbacks')">See Feedback</div>
+          <hr>
+          <div class="menu-item" onclick="viewDirectory('students')">📚 Student Directory</div>
+          <div class="menu-item" onclick="viewDirectory('faculty')">👩‍🏫 Faculty Directory</div>
+        `;
+      }
+
+      if(currentUser.role === 'principal'){
+        dash.classList.add('principal-role');
+        profileTitle.textContent = 'Principal Dashboard';
+        action.innerHTML = `
+          <div class="card">
+            <div class="profile-row">
+              <div class="avatar">${avatarHTML}</div>
+              <div>
+                <h3 style="margin:0">${escapeHtml(currentUser.data.name)}</h3>
+                <div class="muted-small">Designation: <b>${escapeHtml(currentUser.data.designation || 'Principal')}</b></div>
+                <div class="muted" style="margin-top:8px">
+                  Email: <b>${escapeHtml(currentUser.data.email || 'N/A')}</b><br>
+                  Phone: <b>${escapeHtml(currentUser.data.phone || 'N/A')}</b><br>
+                  Access Level: <b>Full System Access</b>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        menuHtml += `
+          <div class="menu-item" onclick="viewSubmissions('suggestions')">See Suggestions</div>
+          <div class="menu-item" onclick="viewSubmissions('complaints')">See Complaints</div>
+          <div class="menu-item" onclick="viewSubmissions('reports')">See Reports</div>
+          <div class="menu-item" onclick="viewSubmissions('feedbacks')">See Feedback</div>
+          <hr>
+          <div class="menu-item" onclick="viewDirectory('students')">📚 Student Directory</div>
+          <div class="menu-item" onclick="viewDirectory('faculty')">👩‍🏫 Faculty Directory</div>
+          <hr>
+          <div class="menu-item" onclick="exportDB()">🔽 Export All Submissions</div>
+          <div class="menu-item" onclick="clearAllSubmissions()">🗑 Clear All Submissions</div>
+        `;
+      }
+
+      menu.innerHTML = menuHtml;
+      closeSidebar();
+    }
+
+    function renderAvatarHTML(photoData, name, size = 64){
+      if(photoData){
+        return `<img src="${escapeHtml(photoData)}" alt="${escapeHtml(name)}">`;
+      }
+      // initials fallback
+      const initials = (name||'').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]?.toUpperCase()||'').join('') || '?';
+      const bg = '#eef';
+      // inline SVG for initials (keeps consistent sizing)
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(name)}">
+        <rect width="${size}" height="${size}" fill="#eef7ff"></rect>
+        <text x="50%" y="55%" font-family="Arial, Helvetica, sans-serif" font-size="${Math.floor(size/2.5)}" fill="#235" text-anchor="middle" alignment-baseline="middle">${escapeHtml(initials)}</text>
+      </svg>`;
+    }
+
+    /** -------------------- SIDEBAR / RESPONSIVENESS -------------------- **/
+    function toggleSidebar(){
+      const menu = byId('menuList');
+      const overlay = byId('overlay');
+      const hamburger = document.querySelector('.hamburger');
+      if(menu.classList.contains('show')){
+        menu.classList.remove('show'); overlay.classList.remove('show'); hamburger.classList.remove('open');
+      } else { menu.classList.add('show'); overlay.classList.add('show'); hamburger.classList.add('open'); }
+    }
+    function closeSidebar(){ const menu=byId('menuList'), overlay=byId('overlay'), ham=document.querySelector('.hamburger'); if(menu.classList.contains('show')) menu.classList.remove('show'); if(overlay.classList.contains('show')) overlay.classList.remove('show'); if(ham && ham.classList.contains('open')) ham.classList.remove('open'); }
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closeSidebar(); closeExportModal(); } });
+
+    /** -------------------- FORMS & SUBMISSIONS -------------------- **/
+    const TYPE_MAP = { suggestion: 'suggestions', complaint: 'complaints', report: 'reports', feedback: 'feedbacks' };
+    function normalizeType(t){ if(!t) return null; if(TYPE_MAP[t]) return TYPE_MAP[t]; if(Object.values(TYPE_MAP).includes(t)) return t; return null; }
+
+    function loadForm(shortType){
+      const readable = shortType.charAt(0).toUpperCase() + shortType.slice(1);
+      byId('actionContainer').innerHTML = `
+        <h3>Submit ${escapeHtml(readable)}</h3>
+        <textarea id="formText" rows="5" placeholder="Type your ${escapeHtml(readable.toLowerCase())} here..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="submit-btn" id="submitBtn">Submit</button>
+          <button class="secondary-btn" id="cancelBtn">Cancel</button>
+        </div>
+        <div id="formMsg" class="muted" aria-live="polite"></div>
+      `;
+      closeSidebar();
+      byId('cancelBtn').addEventListener('click', renderDashboard);
+      byId('submitBtn').addEventListener('click', ()=> submitForm(shortType));
+    }
+
+    function submitForm(typeInput){
+      const textarea = byId('formText') || byId('submissionText');
+      if(!textarea) return;
+      const text = textarea.value.trim();
+      const msgEl = byId('formMsg');
+      if(!text){ if(msgEl) msgEl.textContent = "Cannot submit empty text"; return; }
+      const key = normalizeType(typeInput) || typeInput;
+      if(!key){ if(msgEl) msgEl.textContent = "Unknown submission type"; return; }
+
+      const submission = {
+        user: currentUser.data.name || 'Anonymous',
+        username: currentUser.data.username || '',
+        roll: currentUser.data.roll || '',
+        section: currentUser.section || currentUser.data.section || '',
+        text,
+        date: new Date().toISOString(),
+        reviews: []
+      };
+      db.submissions[key] = db.submissions[key] || [];
+      db.submissions[key].push(submission);
+      saveToStorage();
+
+      if(msgEl) msgEl.textContent = "Submitted ✅";
+      if(byId('myCountBadge')) byId('myCountBadge').textContent = getUserSubmissionCount(currentUser.data.name);
+      setTimeout(()=>renderDashboard(),700);
+    }
+
+    /** -------------------- VIEW SUBMISSIONS -------------------- **/
+    function viewSubmissions(pluralType){
+      const key = normalizeType(pluralType) || pluralType;
+      const readable = (key ? (key.charAt(0).toUpperCase() + key.slice(1)) : pluralType);
+      const list = db.submissions[key] || [];
+
+      let html = `<h3>${escapeHtml(readable)}</h3>`;
+      if(list.length === 0){ html += '<div class="muted">No submissions yet.</div>'; byId('actionContainer').innerHTML = html; closeSidebar(); return; }
+
+      html += `<input id="searchInput" class="search-input" placeholder="🔍 Search by name, section or text" style="margin-bottom:10px;" oninput="filterSubmissions('${escapeHtml(key)}')">`;
+      html += `<div id="submissionCards">`;
+
+      list.forEach((e,i)=>{
+        let displayUser = '';
+        if(currentUser.role === 'principal'){
+          displayUser = `${escapeHtml(e.user || 'Anonymous')} ${e.roll? '| Roll: ' + escapeHtml(e.roll):''} ${e.section? '| Section: ' + escapeHtml(e.section): ''}`;
+        } else {
+          displayUser = escapeHtml(e.section || 'Student');
+        }
+
+        // find photo if available
+        const student = allStudentObjects().find(s => s.name === e.user || s.username === e.username);
+        const facultyMatch = db.faculty.find(f => f.name === e.user || f.username === e.username);
+        const photo = (student && student.photo) || (facultyMatch && facultyMatch.photo) || '';
+
+        const reviewsHTML = e.reviews.length === 0 ? '<div class="muted">No reviews yet.</div>' : e.reviews.map(r=>renderReview(r)).join('');
+
+        html += `
+          <div class="card">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(e.user||'')}" style="width:100%; height:100%; object-fit:cover">` : renderAvatarHTML(e.user, e.user, 44)}</div>
+              <div style="flex:1">
+                <b>${displayUser}</b>
+                <div class="muted-small">${escapeHtml(formatDate(e.date))}</div>
+              </div>
+            </div>
+            <p>${escapeHtml(e.text)}</p>
+            <div>${reviewsHTML}</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="submit-btn btn-small" onclick="promptAddReview('${escapeHtml(key)}',${i})">Add Review</button>
+            </div>
+          </div>`;
+      });
+
+      html += `</div><button class="secondary-btn" onclick="renderDashboard()">Back</button>`;
+      byId('actionContainer').innerHTML = html;
+      closeSidebar();
+    }
+
+    function renderReview(r){
+      const reviewerName = escapeHtml(r.reviewer || r.by || 'Anonymous');
+      const when = escapeHtml(formatDate(r.date || r.when || new Date().toISOString()));
+      const text = escapeHtml(r.text || r.message || '');
+
+      if(currentUser.role === 'principal'){
+        // show reviewer details when possible
+        const all = allStudentObjects();
+        const matched = all.find(s=>s.name === (r.reviewer || r.by));
+        if(matched) return `<div style="border-top:1px solid #eef;padding-top:6px;margin-top:6px"><b>${escapeHtml(matched.name)}</b> | Roll: ${escapeHtml(matched.roll||'N/A')} | Section: ${escapeHtml(matched.section||'N/A')}: ${text}<div class="muted-small" style="font-size:12px">${when}</div></div>`;
+      }
+      return `<div style="border-top:1px solid #eef;padding-top:6px;margin-top:6px"><b>${reviewerName}</b>: ${text}<div class="muted-small" style="font-size:12px">${when}</div></div>`;
+    }
+
+    function promptAddReview(typeKey,index){
+      const txt = prompt('Add your review:');
+      if(!txt) return;
+      const key = normalizeType(typeKey) || typeKey;
+      const list = db.submissions[key] || [];
+      if(list && list[index]){
+        const reviewerName = (currentUser && currentUser.data && currentUser.data.name) ? currentUser.data.name : 'Anonymous';
+        list[index].reviews.push({ reviewer: reviewerName, text: txt, date: new Date().toISOString() });
+        saveToStorage();
+        viewSubmissions(key);
+      }
+    }
+
+    /** -------------------- VIEW MY SUBMISSIONS -------------------- **/
+    function viewMySubmissions(){
+      const myName = currentUser.data.name;
+      const mySubs = Object.keys(db.submissions).map(k => db.submissions[k].filter(s => s.user === myName).map(s => ({...s, type: k}))).flat();
+      let html = `<h3>📌 My Submissions</h3>`;
+      if(mySubs.length === 0){ html += '<div class="muted">No submissions yet.</div>'; byId('actionContainer').innerHTML = html; closeSidebar(); return; }
+
+      mySubs.forEach((e,i)=>{
+        const reviewsHTML = e.reviews.length === 0 ? '<div class="muted">No reviews yet.</div>' : e.reviews.map(r=>renderReview(r)).join('');
+        const photo = (allStudentObjects().find(s => s.name === e.user || s.username === e.username)?.photo) || '';
+        html += `
+          <div class="card">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(e.user||'')}" style="width:100%; height:100%; object-fit:cover">` : renderAvatarHTML(e.user, e.user, 44)}</div>
+              <div style="flex:1">
+                <b>${escapeHtml(e.section || 'Student')}</b>
+                <div class="muted-small">${escapeHtml(formatDate(e.date))} · ${escapeHtml(e.type)}</div>
+              </div>
+            </div>
+            <p>${escapeHtml(e.text)}</p>
+            <div>${reviewsHTML}</div>
+          </div>`;
+      });
+
+      html += `<button class="secondary-btn" onclick="renderDashboard()">Back</button>`;
+      byId('actionContainer').innerHTML = html;
+      closeSidebar();
+    }
+
+    function filterSubmissions(type){
+      const query = (byId('searchInput').value || '').toLowerCase();
+      const list = db.submissions[type] || [];
+      const filtered = list.filter(e=> (e.user||'').toLowerCase().includes(query) || (e.section||'').toLowerCase().includes(query) || (e.text||'').toLowerCase().includes(query));
+      const container = byId('submissionCards');
+      if(!container) return;
+      container.innerHTML = '';
+      if(filtered.length === 0){
+        container.innerHTML = '<div class="muted">No matching results.</div>';
+        return;
+      }
+      filtered.forEach((e,i)=>{
+        const displayUser = currentUser.role === 'principal' ? `${escapeHtml(e.user||'Anonymous')} ${e.roll? '| Roll: ' + escapeHtml(e.roll):''} ${e.section? '| Section: ' + escapeHtml(e.section): ''}` : escapeHtml(e.section || 'Student');
+        const reviewsHTML = e.reviews.length === 0 ? '<div class="muted">No reviews yet.</div>' : e.reviews.map(r=>renderReview(r)).join('');
+        const photo = (allStudentObjects().find(s => s.name === e.user || s.username === e.username)?.photo) || '';
+        container.insertAdjacentHTML('beforeend', `
+          <div class="card">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(e.user||'')}" style="width:100%; height:100%; object-fit:cover">` : renderAvatarHTML(e.user, e.user, 44)}</div>
+              <div style="flex:1">
+                <b>${displayUser}</b>
+                <div class="muted-small">${escapeHtml(formatDate(e.date))}</div>
+              </div>
+            </div>
+            <p>${escapeHtml(e.text)}</p>
+            <div>${reviewsHTML}</div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="submit-btn btn-small" onclick="promptAddReview('${escapeHtml(type)}',${i})">Add Review</button>
+            </div>
+          </div>`);
+      });
+    }
+
+    function renderSubmissionCard(e,i,type){
+      const displayUser = `${escapeHtml(e.user||'Anonymous')} ${e.roll?`| Roll: ${escapeHtml(e.roll)}`:''} ${e.section?`| Section: ${escapeHtml(e.section)}`:''}`;
+      const reviewsHTML = e.reviews.length? e.reviews.map(r=>renderReview(r)).join('') : '<div class="muted">No reviews yet.</div>';
+      const photo = (allStudentObjects().find(s => s.name === e.user || s.username === e.username)?.photo) || '';
+      return `
+        <div class="card">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(e.user||'')}" style="width:100%; height:100%; object-fit:cover">` : renderAvatarHTML(e.user, e.user, 44)}</div>
+            <div style="flex:1">
+              <b>${displayUser}</b><br>
+              <small class="muted-small">${escapeHtml(formatDate(e.date))}</small>
+            </div>
+          </div>
+          <p>${escapeHtml(e.text)}</p>
+          <div>${reviewsHTML}</div>
+          <button class="submit-btn btn-small" onclick="promptAddReview('${escapeHtml(type)}',${i})">Add Review</button>
+        </div>`;
+    }
+
+    /** -------------------- DIRECTORY (SEARCH FILTER) -------------------- **/
+    function viewDirectory(kind = 'students'){
+      // kind: 'students' or 'faculty'
+      let html = `<h3>${kind === 'faculty' ? 'Faculty Directory' : 'Student Directory'}</h3>`;
+      html += `<input id="dirSearch" class="search-input" placeholder="🔍 Search by name, roll, section, department" oninput="filterDirectory('${escapeHtml(kind)}')">`;
+      html += `<div id="directoryList" style="margin-top:12px"></div>`;
+      html += `<button class="secondary-btn" style="margin-top:10px" onclick="renderDashboard()">Back</button>`;
+      byId('actionContainer').innerHTML = html;
+      closeSidebar();
+      renderDirectory(kind);
+    }
+
+    function renderDirectory(kind){
+      const listEl = byId('directoryList');
+      listEl.innerHTML = '';
+      if(kind === 'faculty'){
+        if(!db.faculty || db.faculty.length === 0){ listEl.innerHTML = '<div class="muted">No faculty records.</div>'; return; }
+        db.faculty.forEach((f,i)=>{
+          const photo = f.photo || '';
+          listEl.insertAdjacentHTML('beforeend', `
+            <div class="card" style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(f.name||'')}" style="width:100%;height:100%;object-fit:cover">` : renderAvatarHTML(f.name, f.name, 44)}</div>
+              <div style="flex:1">
+                <b>${escapeHtml(f.name)}</b> <div class="muted-small">${escapeHtml(f.designation||'')}</div>
+                <div class="muted" style="margin-top:6px">${escapeHtml(f.dept||'')} · ${escapeHtml(f.email||'')}</div>
+              </div>
+            </div>`);
+        });
+      } else {
+        // students combined across sections
+        const flat = allStudentObjects();
+        if(!flat || flat.length === 0){ listEl.innerHTML = '<div class="muted">No student records.</div>'; return; }
+        flat.forEach(s=>{
+          const photo = s.photo || '';
+          listEl.insertAdjacentHTML('beforeend', `
+            <div class="card" style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(s.name||'')}" style="width:100%;height:100%;object-fit:cover">` : renderAvatarHTML(s.name, s.name, 44)}</div>
+              <div style="flex:1">
+                <b>${escapeHtml(s.name)}</b> <div class="muted-small">${escapeHtml(s.roll||'')}</div>
+                <div class="muted" style="margin-top:6px">${escapeHtml(s.section||'')} · ${escapeHtml(s.email||'')}</div>
+              </div>
+            </div>`);
+        });
+      }
+    }
+
+    function filterDirectory(kind){
+      const q = (byId('dirSearch').value || '').toLowerCase();
+      const listEl = byId('directoryList');
+      listEl.innerHTML = '';
+      if(kind === 'faculty'){
+        const filtered = (db.faculty || []).filter(f => (f.name||'').toLowerCase().includes(q) || (f.dept||'').toLowerCase().includes(q) || (f.empId||'').toLowerCase().includes(q) || (f.email||'').toLowerCase().includes(q));
+        if(filtered.length === 0) { listEl.innerHTML = '<div class="muted">No matching results.</div>'; return; }
+        filtered.forEach(f=>{
+          const photo = f.photo || '';
+          listEl.insertAdjacentHTML('beforeend', `
+            <div class="card" style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(f.name||'')}" style="width:100%;height:100%;object-fit:cover">` : renderAvatarHTML(f.name, f.name, 44)}</div>
+              <div style="flex:1">
+                <b>${escapeHtml(f.name)}</b> <div class="muted-small">${escapeHtml(f.designation||'')}</div>
+                <div class="muted" style="margin-top:6px">${escapeHtml(f.dept||'')} · ${escapeHtml(f.email||'')}</div>
+              </div>
+            </div>`);
+        });
+      } else {
+        const flat = allStudentObjects();
+        const filtered = flat.filter(s => (s.name||'').toLowerCase().includes(q) || (s.roll||'').toLowerCase().includes(q) || (s.section||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q));
+        if(filtered.length === 0) { listEl.innerHTML = '<div class="muted">No matching results.</div>'; return; }
+        filtered.forEach(s=>{
+          const photo = s.photo || '';
+          listEl.insertAdjacentHTML('beforeend', `
+            <div class="card" style="display:flex;gap:12px;align-items:center">
+              <div class="avatar-sm">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(s.name||'')}" style="width:100%;height:100%;object-fit:cover">` : renderAvatarHTML(s.name, s.name, 44)}</div>
+              <div style="flex:1">
+                <b>${escapeHtml(s.name)}</b> <div class="muted-small">${escapeHtml(s.roll||'')}</div>
+                <div class="muted" style="margin-top:6px">${escapeHtml(s.section||'')} · ${escapeHtml(s.email||'')}</div>
+              </div>
+            </div>`);
+        });
+      }
+    }
+
+    /** -------------------- PROFILE EDIT / PHOTO / PASSWORD -------------------- **/
+    function showEditProfile(){
+      const data = currentUser.data;
+      const role = currentUser.role;
+      let formHTML = `<h3>Edit Profile</h3>`;
+
+      // show current avatar + upload button
+      const photoPreview = data.photo ? `<img id="photoPreview" src="${escapeHtml(data.photo)}" style="width:88px;height:88px;border-radius:12px;object-fit:cover;border:1px solid #eef">` :
+        `<div id="photoPreview" style="width:88px;height:88px;border-radius:12px;background:#eef;display:flex;align-items:center;justify-content:center">${renderAvatarHTML(data.name||'', data.name||'', 44)}</div>`;
+
+      formHTML += `<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div>${photoPreview}</div>
+        <div style="flex:1">
+          <label style="margin-bottom:6px">Upload Photo (optional)</label>
+          <input id="photoInput" type="file" accept="image/*">
+          <div class="muted-small" style="margin-top:8px">Tip: small square images work best. Stored in your browser only.</div>
+        </div></div>`;
+
+      formHTML += `<label>Full Name</label><input id="editName" type="text" value="${escapeHtml(data.name||'')}">`;
+      formHTML += `<label>Email</label><input id="editEmail" type="text" value="${escapeHtml(data.email||'')}">`;
+      formHTML += `<label>Phone</label><input id="editPhone" type="text" value="${escapeHtml(data.phone||'')}">`;
+
+      if(role === 'student'){
+        formHTML += `<label>Roll</label><input id="editRoll" type="text" value="${escapeHtml(data.roll||'')}">`;
+        formHTML += `<label>Section</label><input id="editSection" type="text" value="${escapeHtml(currentUser.section||data.section||'')}">`;
+        formHTML += `<label>Major</label><input id="editMajor" type="text" value="${escapeHtml(data.major||'')}">`;
+      } else if(role === 'teacher'){
+        formHTML += `<label>Employee ID</label><input id="editEmp" type="text" value="${escapeHtml(data.empId||'')}">`;
+        formHTML += `<label>Department</label><input id="editDept" type="text" value="${escapeHtml(data.dept||'')}">`;
+        formHTML += `<label>Designation</label><input id="editDesig" type="text" value="${escapeHtml(data.designation||'')}">`;
+      } else if(role === 'principal'){
+        formHTML += `<label>Designation</label><input id="editDesig" type="text" value="${escapeHtml(data.designation||'Principal')}">`;
+      }
+
+      formHTML += `
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="login-btn" id="saveProfileBtn">Save</button>
+          <button class="secondary-btn" id="cancelProfileBtn">Cancel</button>
+        </div>`;
+
+      byId('actionContainer').innerHTML = formHTML;
+      closeSidebar();
+
+      // hookup file input
+      const pInput = byId('photoInput');
+      pInput.addEventListener('change', (ev) => {
+        const f = ev.target.files && ev.target.files[0];
+        if(!f) return;
+        if(!f.type.startsWith('image/')){ showToast('Please select an image file'); return; }
+        const reader = new FileReader();
+        reader.onload = function(e){
+          const dataUrl = e.target.result;
+          const img = byId('photoPreview');
+          if(img.tagName === 'IMG') img.src = dataUrl;
+          else img.innerHTML = `<img src="${escapeHtml(dataUrl)}" style="width:88px;height:88px;border-radius:12px;object-fit:cover;border:1px solid #eef">`;
+          // store temporarily in currentUser.data (final save on Save click)
+          currentUser.data.photo = dataUrl;
+        };
+        reader.readAsDataURL(f);
+      });
+
+      byId('cancelProfileBtn').addEventListener('click', renderDashboard);
+      byId('saveProfileBtn').addEventListener('click', saveProfile);
+    }
+
+    function saveProfile(){
+      const d = currentUser.data;
+      d.name = byId('editName').value.trim();
+      d.email = byId('editEmail').value.trim();
+      d.phone = byId('editPhone').value.trim();
+
+      // photo already assigned to currentUser.data.photo via FileReader; ensure property exists
+      d.photo = d.photo || '';
+
+      if(currentUser.role === 'student'){
+        d.roll = byId('editRoll').value.trim();
+        const newSec = byId('editSection').value.trim();
+        d.major = byId('editMajor').value.trim();
+        // keep currentUser.section in sync
+        const oldUsername = d.username;
+        const oldSection = currentUser.section;
+        currentUser.section = newSec || currentUser.section;
+        d.section = currentUser.section;
+        // update the student record in db where username matches
+        for(const [sectionKey, group] of Object.entries(db.students)){
+          for(const idx in group){
+            if(group[idx].username === d.username){
+              // if section changed, move record to new section
+              group[idx] = {...group[idx], ...d};
+            }
+          }
+        }
+        // ensure record exists in current section (in case changed)
+        const target = db.students[currentUser.section] = db.students[currentUser.section] || [];
+        const foundIndex = target.findIndex(u => u.username === d.username);
+        if(foundIndex === -1){
+          target.push(clone(d));
+        } else {
+          target[foundIndex] = {...target[foundIndex], ...d};
+        }
+      } else if(currentUser.role === 'teacher'){
+        d.empId = byId('editEmp').value.trim();
+        d.dept = byId('editDept').value.trim();
+        d.designation = byId('editDesig').value.trim();
+        // update faculty in db
+        db.faculty = db.faculty.map(f=> f.username===d.username? {...f,...d}: f);
+      } else if(currentUser.role === 'principal'){
+        d.designation = byId('editDesig').value.trim();
+        db.principal = {...db.principal, ...d};
+      }
+
+      saveToStorage();
+      showToast('Profile updated successfully ✅');
+      renderDashboard();
+    }
+
+    function showChangePasswordForm(){
+      const html = `
+        <h3>Change Password</h3>
+        <label>Current Password</label>
+        <input id="oldPass" type="password">
+        <label>New Password</label>
+        <input id="newPass" type="password">
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="login-btn" id="updatePassBtn">Update</button>
+          <button class="secondary-btn" id="cancelPassBtn">Cancel</button>
+        </div>
+        <div id="passMsg" class="muted" aria-live="polite"></div>
+      `;
+      byId('actionContainer').innerHTML = html;
+      closeSidebar();
+      byId('cancelPassBtn').addEventListener('click', renderDashboard);
+      byId('updatePassBtn').addEventListener('click', changePassword);
+    }
+
+    function changePassword(){
+      const oldP = byId('oldPass').value.trim();
+      const newP = byId('newPass').value.trim();
+      const msg = byId('passMsg');
+      if(!currentUser || !currentUser.data) return;
+      if(oldP !== currentUser.data.password){ msg.textContent = 'Old password incorrect ❌'; return; }
+      if(newP.length < 4){ msg.textContent = 'New password too short'; return; }
+      // update password in memory and db
+      currentUser.data.password = newP;
+      if(currentUser.role === 'student'){
+        for(const group of Object.values(db.students)){
+          for(const u of group){ if(u.username === currentUser.data.username) u.password = newP; }
+        }
+      } else if(currentUser.role === 'teacher'){
+        db.faculty = db.faculty.map(f=> f.username===currentUser.data.username? {...f, password:newP}: f);
+      } else if(currentUser.role === 'principal'){
+        db.principal.password = newP;
+      }
+      saveToStorage();
+      msg.textContent = 'Password updated ✅';
+    }
+
+    /** -------------------- EXPORT / CLEAR -------------------- **/
+    function exportDB(){
+      // export full DB (safe; local-only demo)
+      byId('exportText').value = JSON.stringify(db, null, 2);
+      byId('exportModal').classList.add('show');
+      byId('exportOverlay').classList.add('show');
+      byId('exportModal').setAttribute('aria-hidden','false');
+      byId('exportOverlay').style.display = 'block';
+    }
+    function closeExportModal(){ byId('exportModal').classList.remove('show'); byId('exportOverlay').classList.remove('show'); byId('exportModal').setAttribute('aria-hidden','true'); byId('exportOverlay').style.display = 'none'; }
+    function copyExportToClipboard(){ const txt = byId('exportText').value; navigator.clipboard.writeText(txt).then(()=>showToast('Copied to clipboard ✅')).catch(()=>showToast('Copy failed — select & copy manually.')); }
+
+    function clearAllSubmissions(){ if(!confirm('Are you sure you want to clear ALL submissions? This cannot be undone.')) return; db.submissions = { suggestions:[], complaints:[], reports:[], feedbacks:[] }; saveToStorage(); showToast('All submissions cleared ✅'); renderDashboard(); }
+
+    /** -------------------- LOGOUT & HELPERS -------------------- **/
+    function logout(){ currentRole=''; currentUser=null; byId('dashboard').style.display='none'; byId('roleSelection').style.display='flex'; byId('loginPage').style.display='none'; }
+
+    // initialize: show role selection
+    (function init(){
+      byId('roleSelection').style.display='flex';
+      byId('loginPage').style.display='none';
+      byId('dashboard').style.display='none';
+      // accessibility: allow Enter on hamburger to toggle
+      document.querySelectorAll('.hamburger').forEach(h=>h.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') toggleSidebar(); }));
+      // small warmup: remove any broken references in storage (migration safe)
+      saveToStorage();
+    })();
+  </script>
+</body>
+</html>
